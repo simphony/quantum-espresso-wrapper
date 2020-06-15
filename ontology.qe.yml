@@ -1,0 +1,52 @@
+---
+version: "0.1"
+namespace: "QE_ONTOLOGY"
+author: "Mathias Driesse"
+
+ontology:
+    
+    HAS_PART:
+        description: "default relationship"
+        subclass_of:
+        - CUBA.ACTIVE_RELATIONSHIP
+        inverse: QE_ONTOLOGY.IS_PART_OF
+        default_rel: true
+
+    IS_PART_OF:
+        description: "inverse of the default relationship"
+        subclass_of:
+        -  CUBA.PASSIVE_RELATIONSHIP
+        inverse: QE_ONTOLOGY.HAS_PART
+        
+    ########################
+    
+    QE_WRAPPER:
+        subclass_of:
+        - CUBA.WRAPPER
+        
+    VALUE:
+        subclass_of:
+        - CUBA.ATTRIBUTE
+        
+    NAME:
+        subclass_of:
+        - QE_ONTOLOGY.VALUE
+        datatype: STRING
+     
+    VECTOR:
+        subclass_of:
+        - QE_ONTOLOGY.VALUE
+        datatype: VECTOR:3
+        
+    INPUT:
+        subclass_of:
+        - CUBA.ENTITY
+    
+        
+    
+    
+        
+       
+        
+
+    
