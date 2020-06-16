@@ -1,6 +1,6 @@
 ---
 version: "0.1"
-namespace: "QE_ONTOLOGY"
+namespace: "QE"
 author: "Mathias Driesse"
 
 ontology:
@@ -9,38 +9,78 @@ ontology:
         description: "default relationship"
         subclass_of:
         - CUBA.ACTIVE_RELATIONSHIP
-        inverse: QE_ONTOLOGY.IS_PART_OF
+        inverse: QE.IS_PART_OF
         default_rel: true
 
     IS_PART_OF:
         description: "inverse of the default relationship"
         subclass_of:
         -  CUBA.PASSIVE_RELATIONSHIP
-        inverse: QE_ONTOLOGY.HAS_PART
+        inverse: QE.HAS_PART
         
     ########################
     
     QE_WRAPPER:
+        description: "The quantum espresso wrapper"
         subclass_of:
         - CUBA.WRAPPER
+    
+    SIMULATION:
+        description: "All components of the simulation that are needed to run the model"
+        subclass_of:
+        - CUBA.ENTITY
+        - QE.HAS_PART:
+            cardinality: 1
+            exclusive: false
+            range: QE.CELL
+
+    CELL:
+        subclass_of:
+        - CUBA.ENTITY
+        - QE.HAS_PART:
+            range: QE.ATOM
+            exclusive: false
+            cardinality: 1+
+
+    ATOM:
+        subclass_of:
+        - CUBA.ENTITY
+        - QE.HAS_PART:
+            range: QE.POSITION
+
+    PHYSICAL_QUANTITY:
+        subclass_of:
+        - CUBA.ENTITY
+        attributes:
+            QE.VALUE:
+            QE.UNIT:
+
+    VECTOR:
+        subclass_of:
+        - CUBA.ATTRIBUTE
+        datatype: VECTOR:3
+
+    UNIT:
+        subclass_of:
+        - CUBA.ATTRIBUTE
+        datatype: STRING
+
+    POSITION:
+        subclass_of:
+        - QE.PHYSICAL_QUANTITY
         
     VALUE:
         subclass_of:
         - CUBA.ATTRIBUTE
         
-    NAME:
-        subclass_of:
-        - QE_ONTOLOGY.VALUE
-        datatype: STRING
-     
-    VECTOR:
-        subclass_of:
-        - QE_ONTOLOGY.VALUE
-        datatype: VECTOR:3
-        
-    INPUT:
-        subclass_of:
-        - CUBA.ENTITY
+
+    
+
+    
+
+
+    
+
     
         
     
