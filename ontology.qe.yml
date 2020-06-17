@@ -4,55 +4,94 @@ namespace: "QE"
 author: "Mathias Driesse"
 
 ontology:
+
+    ####################### Relationships
     
     HAS_PART:
         description: "default relationship"
         subclass_of:
-        - CUBA.ACTIVE_RELATIONSHIP
+            - CUBA.ACTIVE_RELATIONSHIP
         inverse: QE.IS_PART_OF
         default_rel: true
 
     IS_PART_OF:
         description: "inverse of the default relationship"
         subclass_of:
-        -  CUBA.PASSIVE_RELATIONSHIP
+            -  CUBA.PASSIVE_RELATIONSHIP
         inverse: QE.HAS_PART
+
+    HAS_INPUT:
+        description: Input of a simulation
+        subclass_of:
+            - QE.HAS_PART
+
+    HAS_OUTPUT:
+        description: Output of a simulation
+        subclass_of:
+            - QE.HAS_PART
+
         
     ########################
     
     QE_WRAPPER:
         description: "The quantum espresso wrapper"
         subclass_of:
-        - CUBA.WRAPPER
+            - CUBA.WRAPPER
+            - QE.HAS_PART:
+                cardinality: 1
+                exclusive: true
+                range: QE.SIMULATION
     
     SIMULATION:
         description: "All components of the simulation that are needed to run the model"
         subclass_of:
-        - CUBA.ENTITY
-        - QE.HAS_PART:
-            cardinality: 1
-            exclusive: false
-            range: QE.CELL
+            - CUBA.ENTITY
+            - QE.HAS_PART:
+                cardinality: 1
+                exclusive: false
+                range: QE.CELL
+
+
+    ######################## Physical objects
 
     CELL:
         subclass_of:
-        - CUBA.ENTITY
-        - QE.HAS_PART:
-            range: QE.ATOM
-            exclusive: false
-            cardinality: 1+
+            - CUBA.ENTITY
+            - QE.HAS_PART:
+                range: QE.ATOM
+                exclusive: false
+                cardinality: 1+
 
+    ELEMENT:
+        subclass_of:
+            - CUBA.ENTITY
+            - QE.HAS_PART:
+                range: QE.PSEUDOPOTENTIAL
+                cardinality: 1
+            - QE.HAS_PART:
+                range: QE.ATOM
+                cardinality: 1+
+    
     ATOM:
         subclass_of:
-        - CUBA.ENTITY
-        - QE.HAS_PART:
-            range: QE.POSITION
+            - QE.ELEMENT
+
+    PSEUDOPOTENTIAL:
+        subclass_of:
+            - CUBA.ENTITY
 
     PHYSICAL_QUANTITY:
         subclass_of:
-        - CUBA.ENTITY
+            - CUBA.ENTITY
         attributes:
             QE.VALUE:
+            QE.UNIT:
+
+    PHYSICAL_QUANTITY_VECTOR:
+        subclass_of:
+            - CUBA.ENTITY
+        attributes:
+            QE.VECTOR:
             QE.UNIT:
 
     VECTOR:
@@ -62,16 +101,40 @@ ontology:
 
     UNIT:
         subclass_of:
-        - CUBA.ATTRIBUTE
+            - CUBA.ATTRIBUTE
         datatype: STRING
 
     POSITION:
         subclass_of:
-        - QE.PHYSICAL_QUANTITY
+            - QE.PHYSICAL_QUANTITY_VECTOR
         
     VALUE:
         subclass_of:
         - CUBA.ATTRIBUTE
+
+    MASS:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    CELL_PARAMETERS:
+        subclass_of:
+            - CUBA.ATTRIBUTE
+
+    CELL_PARAMETER_X:
+        subclass_of:
+            - CELL_PARAMETERS
+        datatype: VECTOR:3
+    
+    CELL_PARAMETER_Y:
+        subclass_of:
+            - CELL_PARAMETERS
+        datatype: VECTOR:3
+
+    CELL_PARAMETER_Z:
+        subclass_of:
+            - CELL_PARAMETERS
+        datatype: VECTOR:3
+
         
 
     

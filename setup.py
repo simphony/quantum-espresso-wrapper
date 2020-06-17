@@ -13,5 +13,9 @@ setup(
     long_description = README_TEXT,
     packages = find_packages(),
     test_suite = 'tests',
+    entry_points={
+        'wrappers':
+            'quantumespresso = osp.wrappers.quantumespresso:QESession'
+    },
     
 )
