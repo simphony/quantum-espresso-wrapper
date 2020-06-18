@@ -5,7 +5,7 @@ author: "Mathias Driesse"
 
 ontology:
 
-    ####################### Relationships
+    ############################ Relationships
     
     HAS_PART:
         description: "default relationship"
@@ -31,7 +31,7 @@ ontology:
             - QE.HAS_PART
 
         
-    ########################
+    ############################ Framework
     
     QE_WRAPPER:
         description: "The quantum espresso wrapper"
@@ -50,93 +50,128 @@ ontology:
                 cardinality: 1
                 exclusive: false
                 range: QE.CELL
+            - QE.HAS_PART:
+                cardinality: 1
+                range: QE.TOTAL_ENERGY
 
 
-    ######################## Physical objects
+    ############################ Physical objects
 
     CELL:
         subclass_of:
             - CUBA.ENTITY
             - QE.HAS_PART:
                 range: QE.ATOM
-                exclusive: false
                 cardinality: 1+
+            - QE.HAS_PART:
+                range: QE.CELL_PARAMS
+        
+    ATOM:
+        subclass_of:
+            - CUBA.ENTITY
+            - QE.HAS_PART:
+                range: QE.POSITION
+                cardinality: 1
 
     ELEMENT:
         subclass_of:
             - CUBA.ENTITY
             - QE.HAS_PART:
-                range: QE.PSEUDOPOTENTIAL
+                range: QE.MASS
                 cardinality: 1
             - QE.HAS_PART:
                 range: QE.ATOM
                 cardinality: 1+
-    
-    ATOM:
-        subclass_of:
-            - QE.ELEMENT
+            - QE.HAS_PART:
+                range: QE.PSEUDOPOTENTIAL
+                cardinality: 1
+        attributes:
+            QE.NAME:
 
     PSEUDOPOTENTIAL:
         subclass_of:
             - CUBA.ENTITY
+        attributes:
+            QE.NAME:
+
+    ############################ Physical quantities
 
     PHYSICAL_QUANTITY:
-        subclass_of:
-            - CUBA.ENTITY
         attributes:
             QE.VALUE:
             QE.UNIT:
-
-    PHYSICAL_QUANTITY_VECTOR:
         subclass_of:
             - CUBA.ENTITY
+
+    PHYSICAL_QUANTITY_VECTOR:
         attributes:
             QE.VECTOR:
             QE.UNIT:
-
-    VECTOR:
         subclass_of:
-        - CUBA.ATTRIBUTE
-        datatype: VECTOR:3
+            - CUBA.ENTITY
+
+    POSITION:
+        description: "Position of an entity"
+        subclass_of: 
+            - QE.PHYSICAL_QUANTITY_VECTOR
+
+    MASS:
+        description: "Mass of an entity"
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    CELL_PARAMS:
+        subclass_of:
+            - CUBA.ENTITY
+            - QE.HAS_PART:
+                range: QE.CELL_PARAMETER_X
+                cardinality: 1
+            - QE.HAS_PART:
+                range: QE.CELL_PARAMETER_Y
+                cardinality: 1
+            - QE.HAS_PART:
+                range: QE.CELL_PARAMETER_Z
+                cardinality: 1
+            
+
+    CELL_PARAMETER_X:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY_VECTOR
+    
+    CELL_PARAMETER_Y:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY_VECTOR
+
+    CELL_PARAMETER_Z:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY_VECTOR
+
+    TOTAL_ENERGY:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+                
+
+    ############################ Attributes
+
+    VALUE:
+        subclass_of:
+            - CUBA.ATTRIBUTE
+        datatype: FLOAT
 
     UNIT:
         subclass_of:
             - CUBA.ATTRIBUTE
         datatype: STRING
 
-    POSITION:
-        subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
-        
-    VALUE:
-        subclass_of:
-        - CUBA.ATTRIBUTE
-
-    MASS:
-        subclass_of:
-            - QE.PHYSICAL_QUANTITY
-
-    CELL_PARAMETERS:
+    VECTOR:
         subclass_of:
             - CUBA.ATTRIBUTE
-
-    CELL_PARAMETER_X:
-        subclass_of:
-            - CELL_PARAMETERS
-        datatype: VECTOR:3
-    
-    CELL_PARAMETER_Y:
-        subclass_of:
-            - CELL_PARAMETERS
         datatype: VECTOR:3
 
-    CELL_PARAMETER_Z:
+    NAME:
         subclass_of:
-            - CELL_PARAMETERS
-        datatype: VECTOR:3
-
-        
-
+            - CUBA.ATTRIBUTE
+        datatype: STRING
     
 
     

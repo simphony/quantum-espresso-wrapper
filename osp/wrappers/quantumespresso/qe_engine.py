@@ -7,17 +7,13 @@ class SimulationEngine:
     def __init__(self, session):
         self._session = session
 
-    def run(self):
+    def run(self, input_files, output_files):
         """Run the energy calculation
         """
         self._execute_command(
             arguments = [],
-            input_files={
-                "-input": "inputfile.in"
-            },
-            output_files = {
-                ">": "basicSiCrystal.out"
-            })
+            input_files = input_files,
+            output_files = output_files)
 
     def _execute_command(self, arguments, input_files, output_files):
         """Executes a command in console

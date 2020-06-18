@@ -34,10 +34,10 @@ class qeSession(WrapperSession):
             else:
                 yield None
     
-    def run(self):
+    def run(self, input_files, output_files):
         root = self._registry.get(self.root)
         simulation = root.get(oclass = QE.Simulation)
 
-        self._engine.run()
+        self._engine.run(input_files = input_files, output_files = output_files)
 
     
