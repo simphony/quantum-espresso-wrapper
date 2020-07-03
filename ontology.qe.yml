@@ -19,17 +19,6 @@ ontology:
         subclass_of:
             -  CUBA.PASSIVE_RELATIONSHIP
         inverse: QE.HAS_PART
-
-    HAS_INPUT:
-        description: Input of a simulation
-        subclass_of:
-            - QE.HAS_PART
-
-    HAS_OUTPUT:
-        description: Output of a simulation
-        subclass_of:
-            - QE.HAS_PART
-
         
     ############################ Framework
     
@@ -52,6 +41,7 @@ ontology:
                 range: QE.CELL
             - QE.HAS_PART:
                 cardinality: 1
+                exclusive: false
                 range: QE.TOTAL_ENERGY
 
 
@@ -168,13 +158,63 @@ ontology:
             - CUBA.ATTRIBUTE
         datatype: VECTOR:3
 
+    DBLVECTOR:
+        subclass_of:
+            - CUBA.ATTRIBUTE
+        datatype: VECTOR:6
+
     NAME:
         subclass_of:
             - CUBA.ATTRIBUTE
         datatype: STRING
+
+    ############################ Various extensions to be implemented
+
+    LATTICE_PARAMETERS:
+        subclass_of:
+            - CUBA.ENTITY
+
+    LATTICE_PARAMETER_A:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+    
+    LATTICE_PARAMETER_B:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    LATTICE_PARAMETER_C:
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    ECUTWFC:
+        description: Kinetic energy cutoff for wavefunctions (Ry)
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+    
+    ECUTRHO:
+        description: Kinetic energy cutoff for charge density and potential (Ry)
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    DEGAUSS:
+        description: Value of the gaussian spreading for brillouin-zone integration in metals (Ry)
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
+    K_POINTS:
+        description: Placeholder
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY_VECTOR
+
+    CELLDM1:
+        description: Placeholder
+        subclass_of:
+            - QE.PHYSICAL_QUANTITY
+
     
 
     
+
 
 
     

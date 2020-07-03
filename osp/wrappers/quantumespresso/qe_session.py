@@ -35,6 +35,12 @@ class qeSession(WrapperSession):
                 yield None
     
     def run(self, input_files, output_files):
+        """Run the energy calculation
+
+        Args:
+            input_files (dict): should be in format {"-input": "inputfilename"}
+            output_files (dict): should be in format {">": "outputfilename"}
+        """
         root = self._registry.get(self.root)
         simulation = root.get(oclass = QE.Simulation)
 

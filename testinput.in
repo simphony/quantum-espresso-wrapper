@@ -1,36 +1,28 @@
-&CONTROL
-   calculation = 'scf',
-   outdir = '.',
-   prefix = 'basic',
-   pseudo_dir = '.',
-   verbosity = 'low',
-   tprnfor = .true.,
-   tstress=.true.
+&CONTROL 
+  calculation = 'scf' 
+  pseudo_dir = '.' 
+  tprnfor = .true. 
+  tstress = .true. 
+  outdir = '.' 
 /
-&SYSTEM
-   ibrav = 0
-   A = 5.43070
-   nat = 2
-   ntyp = 1
-   ecutwfc=50,
-   ecutrho=200,
-   input_dft='pbe',
-   occupations='smearing',
-   smearing='mv',
-   degauss=0.005d0,
+&SYSTEM 
+  ibrav = 0 
+  ecutwfc = 100 
+  nat = 1 
+  ntyp = 1 
+  celldm(1) = 5.4307 
 /
-&ELECTRONS
-   conv_thr=1d-08,
-   mixing_beta=0.7d0,
+&ELECTRONS 
 /
-CELL_PARAMETERS {alat}
-  0.5 0.5 0.0
-  0.5 0.0 0.5
-  0.0 0.5 0.5
-ATOMIC_SPECIES 
- Si 28.085 Si.pbe-n-kjpaw_psl.1.0.0.UPF
-ATOMIC_POSITIONS {crystal} 
- Si 0.0 0.0 0.0
- Si 0.25 0.25 0.25
-K_POINTS {automatic}
-  7 7 7 0 0 0
+&CELL 
+/
+ ATOMIC_SPECIES 
+Si 28.085 Si.pbe-n-kjpaw_psl.1.0.0.UPF
+ ATOMIC_POSITIONS {crystal} 
+Si 0.0 0.0 0.0
+ K_POINTS {automatic} 
+7 7 7 0 0 0
+ CELL_PARAMETERS {alat} 
+0.5 0.5 0.0
+0.5 0.0 0.5
+0.0 0.5 0.5
