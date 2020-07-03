@@ -1,1 +1,0 @@
-&CONTROL   calculation = 'scf',   outdir = '.',   prefix = 'basic',   pseudo_dir = '.',   verbosity = 'low',   tprnfor = .true.,   tstress=.true./
