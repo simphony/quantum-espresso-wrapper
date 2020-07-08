@@ -6,6 +6,8 @@ from osp.core.utils import pretty_print
 from osp.wrappers.quantumespresso.qe_session import qeSession
 from osp.wrappers.quantumespresso.qe_utils import qeUtils
 
+import numpy as np
+
 # Creates simulation
 sim = QE.Simulation()
 k = QE.K_points(vector = (7, 7, 7), unit = "")
@@ -37,8 +39,11 @@ SiParams.add(QE.CellParameterX(vector = (0.5, 0.5, 0), unit = ""),
 sim.add(SiCell)
 sim.add(Si)
 sim.add(k)
+sim.add(QE.Pressure(value = 100, unit = "kbar"))
+sim.add(QE.StressTensor(tensor2 = np.zeros((3, 3)), unit = "kbar"))
+root = ""
 
-with qeSession() as session:
+with qeSession(root) as session:
     # Adds session to wrapper
     quantum_espresso_wrapper = QE.Qe_wrapper(session = session)
     # Adds simulation to wrapper
@@ -46,16 +51,15 @@ with qeSession() as session:
     # pretty_print(sim)
     # Creates a qeUtil object and creates an input file based off of the simulation
     print("Runnng calculation...")
-    util = qeUtils(qeSession)
+    util = qeUtils(qeSession, root)
     util._create_input('testinput.in', sim, CONTROL = {"outdir": "'.'"})
     
     # Runs the simulation
-    quantum_espresso_wrapper.session.run({"-input": "testinput.in"}, {">": "basicSiCrystal.out"})
+    # quantum_espresso_wrapper.session._run({"-input": "testinput.in"}, {">": "FeAl2.out"})
     
     #Adds output to simulation
-    sim.add(QE.TotalEnergy(value = util._read_output('basicSiCrystal.out'), unit = "Ry"))
+    util.update_cuds("FeAl2.out", sim)
 
     # print("Results: ")
     # Pretty prints the simulation
     pretty_print(sim)
-#%%
