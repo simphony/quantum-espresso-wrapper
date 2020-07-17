@@ -1,4 +1,4 @@
-from osp.core import QE
+from osp.core.namespaces import QE
 from osp.core.utils import simple_search
 import re
 import numpy as np  
@@ -17,199 +17,214 @@ class qeUtils():
         """
         self._session = session
         self._file_path_root = root
-        self._simulation_type = "scf"
 
-    def _create_input(self, file_name, sim, **kwargs):
-        """Creates a .in file for QE. Enough information to run a simulation without **kwargs,
-        but any real calculation will necessitate many.
-
-        Args:
-            file_path (str): file path of the .in file to be written 
-            sim (CUDS object): CUDS simulation object
-        """
+    def _create_input(self, sim, **kwargs):
         
-        # Simulation parameters
-        self.params = {
-            "CONTROL": {
-                "calculation": "'scf'",
-                "pseudo_dir": "'.'",
-                "tprnfor": ".true.",
-                "tstress": ".true."
-            },
-            "SYSTEM": {
-                "ibrav": 0,
-                "ecutwfc": 100,
-            },
-                "ELECTRONS": {},
-                "CELL": {},
-        }
-        # Updates simulation parameters based on keywords
+        # Useful CUDS object finding tool with shorter name
+        def findo(oclass, depth):
+            return simple_search.find_cuds_objects_by_oclass(oclass = oclass, root = sim, rel = QE.HAS_PART)
+
+        #Create config/param dicts for each command type        
+        if self._session._command_type == "pw.x":
+            self.params = {
+                "CONTROL": {
+                    "calculation": f"'{self._session._calculation_type}'",
+                    "pseudo_dir": "'$PSEUDO_DIR'",
+                    "tprnfor": ".true.",
+                    "tstress": ".true.",
+                    "prefix": f"'{self._session._prefix}'",
+                },
+                "SYSTEM": {
+                    "ibrav": 0,
+                    "ecutwfc": 100,
+                },
+                    "ELECTRONS": {},
+                    "CELL": {},
+            }
+
+            self._session._calculation_type = self.params["CONTROL"]["calculation"][1:-1]
+
+        elif self._session._command_type == "bands.x":
+            self.params = {
+                "BANDS": {
+                    "prefix": f"'{self._session._prefix}'",
+                    "outdir": "'.'",
+                    "filband": f"'{self._session._prefix}" + ".bands.dat'"
+                }
+            }
+            self._session._calculation_type = ""
+            self.sysinfo = []
+
+        elif self._sesion._command_type == "ev.x":
+            self._session._calculation_type = ""
+        
+        # Update params based on kwargs
         for key1, value1 in self.params.items():
             for key2, value2 in kwargs.items():
                 if key1 == key2:
                     value1.update(value2)
-        # Information about the system to be simulated
-        self.sysinfo = {"ATOMIC_SPECIES":[], "ATOMIC_POSITIONS {crystal}":[],"K_POINTS {automatic}":[], "CELL_PARAMETERS {alat}":[]}
         
-        def findo(oclass):
-            return simple_search.find_cuds_objects_by_oclass(oclass = oclass, root = sim, rel = QE.HAS_PART)
-
+        
+        # Checks how many of these things there are
         def _get_count(oclass):
             count = 0
-            for item in findo(oclass):
-                count += 1
+            for i in simple_search.find_cuds_objects_by_oclass(oclass = oclass, root = sim, rel = QE.HAS_PART):
+                count +=1
             return count
-        
-        # Adds info from simulation CUDS to params (these are the only cases in which this is necessary)
-        self.params["SYSTEM"]["nat"] = _get_count(QE.ATOM)
-        self.params["SYSTEM"]["ntyp"] = _get_count(QE.ELEMENT)
-        self.params["SYSTEM"]["celldm(1)"] = findo(QE.CELLDM1)[0].value
-        
-        self.atomlist = []
 
-        # Adds info from simulation CUDS object to sysinfo dict
-        for element in findo(QE.ELEMENT):
-            self.sysinfo["ATOMIC_SPECIES"].append([element.name, element.get(oclass = QE.MASS)[0].value, element.get(oclass = QE.PSEUDOPOTENTIAL)[0].name])
-        for atom in findo(QE.ATOM):
-            self.atomlist.append(atom)
-            print(atom.get(oclass = QE.POSITION)[0].vector)
-            self.sysinfo["ATOMIC_POSITIONS {crystal}"].append([atom.get(oclass = QE.ELEMENT, rel = QE.IS_PART_OF)[0].name] + [atom.get(oclass = QE.POSITION)[0].vector[i] for i in range(3)])
-        for point in findo(QE.K_POINTS):
-            self.sysinfo["K_POINTS {automatic}"].append([int(point.vector[i]) for i in range(3)] + [0, 0, 0]) 
-        for param in findo(QE.CELL_PARAMS)[0].get(rel = QE.HAS_PART):
-            self.sysinfo["CELL_PARAMETERS {alat}"].append([i for i in param.vector])
+        # Updates sysinfo and params
+        if self._session._command_type == "pw.x":
 
-        # Writes params to file
-        with open(self._file_path_root+file_name, "w+") as f:
+            # Information about the system to be simulated
+            self.sysinfo = {"ATOMIC_SPECIES":[], "ATOMIC_POSITIONS {crystal}":[],"K_POINTS {automatic}":[], "CELL_PARAMETERS {alat}":[]}
+
+            self.params["SYSTEM"]["nat"] = _get_count(oclass = QE.Atom)
+            self.params["SYSTEM"]["ntyp"] = _get_count(QE.Element)
+            self.params["SYSTEM"]["celldm(1)"] = findo(QE.Celldm1, 2)[0].value
+
+            self.atomlist = []
+
+            for element in findo(QE.Element, 1):
+                self.sysinfo["ATOMIC_SPECIES"].append([element.name, element.get(oclass = QE.Mass)[0].value, element.get(oclass = QE.PSEUDOPOTENTIAL)[0].name])
+            
+            for atom in findo(QE.Atom, 2):
+                self.atomlist.append(atom)
+                self.sysinfo["ATOMIC_POSITIONS {crystal}"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
+
+            for point in findo(QE.K_POINTS, 1):
+                self.sysinfo["K_POINTS {automatic}"].append([int(i) for i in point.vector] + [0, 0, 0])
+
+            for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
+                self.sysinfo["CELL_PARAMETERS {alat}"].append([i for i in param.vector])
+
+        self._session._input_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.in"
+        self._session._output_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.out"
+
+        # Writes to file based on params and sys
+        with open(self._file_path_root + self._session._input_file, "w+") as f:
             for key1, value1 in self.params.items():
                 f.write(f"&{key1} \n")
                 for key2, value2 in value1.items():
                     f.write(f"  {key2} = {value2} \n")
                 f.write("/\n")
-            for key1, value1 in self.sysinfo.items():
-                f.write(f" {key1} \n")
-                for i in value1:
-                    f.write(" ".join(str(v) for v in i) + "\n")
+            if self.sysinfo:
+                for key1, value1 in self.sysinfo.items():
+                    f.write(f" {key1} \n")
+                    for i in value1:
+                        f.write(" ".join(str(v) for v in i) + "\n")
 
-        # Gets the simulation type
-        self._simulation_type = self.params["CONTROL"]["calculation"]
+    def _update_cuds(self, sim):
+        if self._session._command_type == "pw.x":
 
-    def _read_output(self, file_name):
-        """Reads the output file and returns energy
+            sim.add(QE.PwOut(path = self._file_path_root + self._session._output_file))
 
-        Args:
-            file_path (str): location of the output file
-
-        Returns:
-            energy: float that contains the energy of the system in Ry
-        """
-        with open(self._file_path_root+file_name, "r") as f:
-            for line in f:
+            def update_total_energy(line):
                 if line.startswith("!"):
-                    energy = float(line.split()[4])
-        try: 
-            return energy
-        except:
-            print("Error: output file did not contain total energy!")
+                    total_energy = float(line.split()[4])
+                    cuds_entity = sim.get(oclass = QE.TotalEnergy)
+                    if cuds_entity:
+                        cuds_entity[0].value = total_energy
+                        cuds_entity[0].unit = "Ry"
+                    else:
+                        sim.add(QE.TotalEnergy(value = total_energy, unit = "Ry"))
 
-    def update_cuds(self, file_name, sim):
-        """Updates CUDS objects after the operation has been executed
+            def update_pressure(line):
+                if line.startswith("     Computing"):
+                    pressure = float(lines[i+2].split()[5])
+                    cuds_entity = sim.get(oclass = QE.Pressure)
+                    if cuds_entity:
+                        cuds_entity[0].value = pressure
+                        cuds_entity[0].unit = "kbar"
+                    else:
+                        sim.add(QE.Force(value = pressure, unit = "kbar"))
 
-        Args:
-            simulation (Cuds): The simulation CUDS object
-        """
-        # TODO: Add stress tensor, also implement in ontology
-        # TODO: Actually add/update these lol
+            def update_force(line):
+                if line.startswith("     atom "):
+                    atom = self.atomlist[int(line.split()[1])-1]
+                    force = [float(line.split()[j]) for j in range(6, 9)]
+                    cuds_entity = atom.get(oclass = QE.Force)
+                    if cuds_entity:
+                        cuds_entity[0].vector = force
+                        cuds_entity[0].unit = "N"
+                    else:
+                        atom.add(QE.Force(vector = force, unit = "N"))
 
-        def findo(oclass):
-            return simple_search.find_cuds_objects_by_oclass(oclass = oclass, root = sim, rel = QE.HAS_PART)
+            def update_stress_tensor(i, line):
+                if line.startswith("     Computing"):
+                    stresslines = [lines[i+j] for j in range(3, 6)]
+                    raw_stress_tensor = [float(j) for j in "".join(stresslines).split()]
+                    stress_tensor_kbar = np.array(raw_stress_tensor).reshape((3, 6))[:,3:6]
+                    cuds_entity = sim.get(oclass = QE.StressTensor)
+                    if cuds_entity:
+                        cuds_entity[0].tensor2 = stress_tensor_kbar
+                        cuds_entity[0].unit = "kbar"
+                    else:
+                        sim.add(QE.StressTensor(tensor2 = stress_tensor_kbar, unit = "kbar"))
 
-        with open(self._file_path_root+file_name, "r+") as file:
-            pass
+            def update_atomic_positions(i, line):
+                if line.startswith("Begin"):
+                    positionslines = [lines[i+j] for j in range(3, 7)]
+                    for j, line in enumerate(positionslines):
+                        atom = self.atomlist[j]
+                        position = [float(line.split()[k]) for k in range(1, 4)]
+                        cuds_entity = atom.get(oclass = QE.Position)
+                        cuds_entity[0].vector = position
+                        cuds_entity[0].unit = "kbar"
+
+            def update_celldm1(line):
+                if line.startswith("CELL_PARAMETERS"):
+                    celldm1 = float(line.split()[2][:-1])
+                    cuds_entity = sim.get(oclass = QE.Cell)[0].get(oclass = QE.Celldm1)
+                    cuds_entity[0].value = celldm1
+                    cuds_entity[0].unit = "au"
+
+            def update_cell_params(i, line):
+                if line.startswith("CELL_PARAMETERS"):
+                    paramlines = [lines[i+j] for j in range(1, 4)]
+                    cuds_entity = sim.get(oclass = QE.Cell)[0].get(oclass = QE.Cell)[0].get(oclass = QE.CellParams)[0]
+                    cuds_entity.get(oclass = QE.CellParameterX)[0].vector = [float(k) for k in paramlines[0].split()]
+                    cuds_entity.get(oclass = QE.CellParameterY)[0].vector = [float(k) for k in paramlines[1].split()]
+                    cuds_entity.get(oclass = QE.CellParameterZ)[0].vector = [float(k) for k in paramlines[2].split()]
+
+            if self._session._calculation_type == "scf":
+                with open(self._file_path_root + self._session._output_file, "r+") as file:
+                    print("testingggg")
+                    lines = file.readlines()
+                    for i, line in enumerate(lines):
+                        update_total_energy(line)
+                        update_pressure(line)
+                        update_force(line)
+                        update_stress_tensor(i, line)
+
+                print(self._file_path_root + self._session._output_file)
+
+            if self._session._calculation_type == "relax":
+                with open(self._file_path_root + self._session._output_file, "r+") as file:
+                    lines = file.readlines()
+                    for i, line in enumerate(lines):
+                        update_total_energy(line)
+                        update_pressure(line)
+                        update_force(line)
+                        update_stress_tensor(i, line)
+                        update_atomic_positions(i, line)
+
             
-            # lines = file.readlines()
-            # for i, line in enumerate(lines):
-            #     if line.startswith("!"):
-            #         total_energy = float(line.split()[4])
-            #     if line.startswith("     atom "):
-            #         atom = self.atomlist[int(line.split()[1])-1]
-            #         if atom.get(oclass = QE.FORCE):
-            #             atom.get(oclass = QE.FORCE)[0].vector = [float(line.split()[i]) for i in range(6, 9)]
-            #         else:
-            #             atom.add(QE.Force(vector = [float(line.split()[j]) for j in range(6, 9)], unit = ""))
-            #         self.atomlist[int(line.split()[1])-1].get(oclass = QE.FORCE)[0].vector = [float(line.split()[i]) for i in range(6, 9)]
-            #     if line.startswith("     Computing"):
-            #         pressure = float(lines[i+2].split()[5])
-            #         stresslines = [lines[i+j] for j in range(3, 6)]
-            #         raw_stress_tensor = [float(i) for i in "".join(stresslines).split()]
-            #         stress_tensor_kbar = np.array(raw_stress_tensor).reshape((3, 6))[:,3:6]
+            if self._session._calculation_type == "vc-relax":
+                with open(self._file_path_root + self._session._output_file, "r+") as file:
+                    lines = file.readlines()
+                    for i, line in enumerate(lines):
+                        update_total_energy(lines)
+                        update_pressure(lines)
+                        update_force(line)
+                        update_stress_tensor(i, line)
+                        update_atomic_positions(i, line)
+                        update_celldm1(i, line)
 
-        print(self._simulation_type)
+            if self._session._calculation_type == "bands":
+                pass
 
-        def update_total_energy(line):
-            if line.startswith("!"):
-                total_energy = float(line.split()[4])
-                cuds_entity = sim.get(oclass = QE.TotalEnergy)
-                if cuds_entity:
-                    cuds_entity[0].value = total_energy
-                    cuds_entity[0].unit = "Ry"
-                else:
-                    sim.add(QE.TotalEnergy(value = total_energy, unit = "Ry"))
+        if self._session._command_type == "ev.x":
+            pass
 
-        def update_pressure(line):
-            if line.startswith("     Computing"):
-                pressure = float(lines[i+2].split()[5])
-                cuds_entity = sim.get(oclass = QE.Pressure)
-                if cuds_entity:
-                    cuds_entity[0].value = pressure
-                    cuds_entity[0].unit = "kbar"
-                else:
-                    sim.add(QE.Force(value = pressure, unit = "kbar"))
-
-        def update_force(line):
-            if line.startswith("     atom "):
-                atom = self.atomlist[int(line.split()[1])-1]
-                force = [float(line.split()[j]) for j in range(6, 9)]
-                cuds_entity = atom.get(oclass = QE.Force)
-                if cuds_entity:
-                    cuds_entity[0].vector = force
-                    cuds_entity[0].unit = "N"
-                else:
-                    atom.add(QE.Force(vector = force, unit = "N"))
-
-        def update_stress_tensor(i, line):
-            if line.startswith("     Computing"):
-                stresslines = [lines[i+j] for j in range(3, 6)]
-                raw_stress_tensor = [float(j) for j in "".join(stresslines).split()]
-                stress_tensor_kbar = np.array(raw_stress_tensor).reshape((3, 6))[:,3:6]
-                cuds_entity = sim.get(oclass = QE.StressTensor)
-                if cuds_entity:
-                    cuds_entity[0].tensor2 = stress_tensor_kbar
-                    cuds_entity[0].unit = "kbar"
-                else:
-                    sim.add(QE.StressTensor(tensor2 = stress_tensor_kbar, unit = "kbar"))
-
-        if self._simulation_type == "'scf'":
-            with open(self._file_path_root+file_name, "r+") as file:
-                lines = file.readlines()
-                for i, line in enumerate(lines):
-                    update_total_energy(line)
-                    update_pressure(line)
-                    update_force(line)
-                    update_stress_tensor(i, line)
-
-        elif self._simulation_type == "'relax'":
-            with open(self._file_path_root+file_name, "r+") as file:
-                lines = file.readlines()
-                for i, line in enumerate(lines):
-                    update_total_energy(line)
-                    update_pressure(line)
-                    update_force(line)
-
-            # Update atomic forces, pressure, total energy, stress tensor
-
-        # elif self._simulation_type == 'relax':
-        #     # Update atomic forces, pressure, total energy, stress tensor, final atomic coordinates
-        
-        # elif self._simulation_type == 'vc-relax':
-        #     # Update atomic forces, pressure, total energy, stress tensor, final atomic coordinates, final cell parameters
+        if self._session._command_type == "bands.x":
+            sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))

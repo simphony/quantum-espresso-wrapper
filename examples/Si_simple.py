@@ -1,7 +1,6 @@
-from osp.core import Parser
-p = Parser()
-p.parse("ontology.qe.yml")
-from osp.core import QE
+import numpy as np
+from osp.core.namespaces import CUBA
+from osp.core.namespaces import QE
 from osp.core.utils import pretty_print
 from osp.wrappers.quantumespresso.qe_session import qeSession
 from osp.wrappers.quantumespresso.qe_utils import qeUtils
@@ -10,13 +9,13 @@ import numpy as np
 
 # Creates simulation
 sim = QE.Simulation()
-k = QE.K_points(vector = (7, 7, 7), unit = "")
+k = QE.K_POINTS(vector = (7, 7, 7), unit = "")
 
 # Creates a cell, the element Silicon, a pseudopotential, two atoms and cell parameters
 SiCell = QE.Cell()
 Si = QE.Element(name = "Si")
-SiPseudo = QE.Pseudopotential(name = "Si.pbe-n-kjpaw_psl.1.0.0.UPF")
-Si1 = QE.ATOM()
+SiPseudo = QE.PSEUDOPOTENTIAL(name = "Si.pbe-n-kjpaw_psl.1.0.0.UPF")
+Si1 = QE.Atom()
 SiParams = QE.CellParams()
 celldm1 = QE.Celldm1(value = 5.43070, unit = "au")
 
@@ -42,23 +41,20 @@ sim.add(k)
 sim.add(QE.Pressure(value = 100, unit = "kbar"))
 sim.add(QE.StressTensor(tensor2 = np.zeros((3, 3)), unit = "kbar"))
 root = ""
-
+pretty_print(sim)
 with qeSession(root) as session:
     # Adds session to wrapper
-    quantum_espresso_wrapper = QE.Qe_wrapper(session = session)
+    quantum_espresso_wrapper = QE.QEWrapper(session = session)
     # Adds simulation to wrapper
     sim = quantum_espresso_wrapper.add(sim)
     # pretty_print(sim)
     # Creates a qeUtil object and creates an input file based off of the simulation
-    print("Runnng calculation...")
-    util = qeUtils(qeSession, root)
-    util._create_input('testinput.in', sim, CONTROL = {"outdir": "'.'"})
+    print("Running calculation...")
     
     # Runs the simulation
-    # quantum_espresso_wrapper.session._run({"-input": "testinput.in"}, {">": "FeAl2.out"})
-    
-    #Adds output to simulation
-    util.update_cuds("FeAl2.out", sim)
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf")
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
 
     # print("Results: ")
     # Pretty prints the simulation

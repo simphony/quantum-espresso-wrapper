@@ -10,200 +10,211 @@ ontology:
     HAS_PART:
         description: "default relationship"
         subclass_of:
-            - CUBA.ACTIVE_RELATIONSHIP
+            - CUBA.activeRelationship
         inverse: QE.IS_PART_OF
         default_rel: true
 
     IS_PART_OF:
         description: "inverse of the default relationship"
         subclass_of:
-            -  CUBA.PASSIVE_RELATIONSHIP
+            -  CUBA.passiveRelationship
         inverse: QE.HAS_PART
         
     ############################ Framework
     
-    QE_WRAPPER:
+    QEWrapper:
         description: "The quantum espresso wrapper"
         subclass_of:
-            - CUBA.WRAPPER
+            - CUBA.Wrapper
             - QE.HAS_PART:
                 cardinality: 1
                 exclusive: true
                 range: QE.SIMULATION
     
-    SIMULATION:
+    Simulation:
         description: "All components of the simulation that are needed to run the model"
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
             - QE.HAS_PART:
                 cardinality: 1
                 exclusive: false
-                range: QE.CELL
+                range: QE.Cell
             - QE.HAS_PART:
                 cardinality: 1
                 exclusive: false
-                range: QE.TOTAL_ENERGY
+                range: QE.TotalEnergy
 
 
     ############################ Physical objects
 
-    CELL:
+    Cell:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
             - QE.HAS_PART:
-                range: QE.ATOM
+                range: QE.Atom
                 cardinality: 1+
             - QE.HAS_PART:
-                range: QE.CELL_PARAMS
+                range: QE.CellParams
         
-    ATOM:
+    Atom:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
             - QE.HAS_PART:
-                range: QE.POSITION
+                range: QE.Position
                 cardinality: 1
 
-    ELEMENT:
+    Element:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
             - QE.HAS_PART:
-                range: QE.MASS
+                range: QE.Mass
                 cardinality: 1
             - QE.HAS_PART:
-                range: QE.ATOM
+                range: QE.Atom
                 cardinality: 1+
             - QE.HAS_PART:
                 range: QE.PSEUDOPOTENTIAL
                 cardinality: 1
         attributes:
-            QE.NAME:
+            QE.name:
 
     PSEUDOPOTENTIAL:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
         attributes:
-            QE.NAME:
+            QE.name:
 
     ############################ Physical quantities
 
-    PHYSICAL_QUANTITY:
+    PhysicalQuantity:
         attributes:
-            QE.VALUE:
-            QE.UNIT:
+            QE.value:
+            QE.unit:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
 
-    PHYSICAL_QUANTITY_VECTOR:
+    PhysicalQuantityVector:
         attributes:
-            QE.VECTOR:
-            QE.UNIT:
+            QE.vector:
+            QE.unit:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
 
-    PHYSICAL_QUANTITY_TENSOR2:
+    PhysicalQuantityTensor2:
         attributes:
-            QE.TENSOR2:
-            QE.UNIT:
+            QE.tensor2:
+            QE.unit:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
 
-    POSITION:
+    Position:
         description: "Position of an entity"
         subclass_of: 
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - QE.PhysicalQuantityVector
 
-    MASS:
+    Mass:
         description: "Mass of an entity"
         subclass_of:
-            - QE.PHYSICAL_QUANTITY
+            - QE.PhysicalQuantity
 
-    CELL_PARAMS:
+    CellParams:
         subclass_of:
-            - CUBA.ENTITY
+            - CUBA.Entity
             - QE.HAS_PART:
-                range: QE.CELL_PARAMETER_X
+                range: QE.CellParameterX
                 cardinality: 1
             - QE.HAS_PART:
-                range: QE.CELL_PARAMETER_Y
+                range: QE.CellParameterY
                 cardinality: 1
             - QE.HAS_PART:
-                range: QE.CELL_PARAMETER_Z
+                range: QE.CellParameterZ
                 cardinality: 1
             
 
-    CELL_PARAMETER_X:
+    CellParameterX:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - QE.PhysicalQuantityVector
     
-    CELL_PARAMETER_Y:
+    CellParameterY:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - QE.PhysicalQuantityVector
 
-    CELL_PARAMETER_Z:
+    CellParameterZ:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - QE.PhysicalQuantityVector
 
-    TOTAL_ENERGY:
+    TotalEnergy:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY
+            - QE.PhysicalQuantity
 
-    STRESS_TENSOR:
+    StressTensor:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_TENSOR2
-                
-    ############################ Attributes
+            - QE.PhysicalQuantityTensor2
 
-    VALUE:
+    Celldm1:
+        description: Placeholder
         subclass_of:
-            - CUBA.ATTRIBUTE
-        datatype: FLOAT
+            - QE.PhysicalQuantity
 
-    UNIT:
+    BulkModulus:
+        description: The bulk modulus of the cell
         subclass_of:
-            - CUBA.ATTRIBUTE
-        datatype: STRING
+            - QE.PhysicalQuantity
 
-    VECTOR:
+    Force:
+        description: A force
         subclass_of:
-            - CUBA.ATTRIBUTE
-        datatype: VECTOR:3
+            - QE.PhysicalQuantityVector
 
-    TENSOR2:
+    Pressure:
+        description: Pressure. What else could it be...
         subclass_of:
-            - CUBA.ATTRIBUTE
-        datatype: VECTOR:3:3
-
-    NAME:
-        subclass_of:
-            - CUBA.ATTRIBUTE
-        datatype: STRING
-
-    ############################ Various extensions to be implemented
+            - QE.PhysicalQuantity
 
     K_POINTS:
         description: Placeholder
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - QE.PhysicalQuantityVector
 
-    CELLDM1:
-        description: Placeholder
-        subclass_of:
-            - QE.PHYSICAL_QUANTITY
+                
+    ############################ Attributes
 
-    BULK_MODULUS:
-        description: The bulk modulus of the cell
+    value:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY
+            - CUBA.attribute
+        datatype: FLOAT
 
-    FORCE:
-        description: A force
+    unit:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY_VECTOR
+            - CUBA.attribute
+        datatype: STRING
 
-    PRESSURE:
-        description: Pressure. What else could it be...
+    vector:
         subclass_of:
-            - QE.PHYSICAL_QUANTITY
+            - CUBA.attribute
+        datatype: VECTOR:3
+
+    tensor2:
+        subclass_of:
+            - CUBA.attribute
+        datatype: VECTOR:3:3
+
+    name:
+        subclass_of:
+            - CUBA.attribute
+        datatype: STRING
+
+    ############################ Various extensions to be implemented
+
+    BandsDat:
+        subclass_of:
+            - CUBA.File
+
+    PwOut:
+        subclass_of:
+            - CUBA.File
+
+
 
 
     
