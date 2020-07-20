@@ -40,6 +40,7 @@ class qeUtils():
                 },
                     "ELECTRONS": {},
                     "CELL": {},
+                    "IONS": {}
             }
 
             self._session._calculation_type = self.params["CONTROL"]["calculation"][1:-1]
@@ -114,10 +115,12 @@ class qeUtils():
                         f.write(" ".join(str(v) for v in i) + "\n")
 
     def _update_cuds(self, sim):
+
         if self._session._command_type == "pw.x":
 
             sim.add(QE.PwOut(path = self._file_path_root + self._session._output_file))
-
+            
+            # A variety of functions to update particular aspects of a cuds simulation
             def update_total_energy(line):
                 if line.startswith("!"):
                     total_energy = float(line.split()[4])
@@ -163,7 +166,9 @@ class qeUtils():
 
             def update_atomic_positions(i, line):
                 if line.startswith("Begin"):
-                    positionslines = [lines[i+j] for j in range(3, 7)]
+                    positionslines = [lines[i+j] for j in range(3, 3+len(self.atomlist))]
+                    print(self.atomlist)
+                    print(positionslines)
                     for j, line in enumerate(positionslines):
                         atom = self.atomlist[j]
                         position = [float(line.split()[k]) for k in range(1, 4)]
@@ -186,6 +191,7 @@ class qeUtils():
                     cuds_entity.get(oclass = QE.CellParameterY)[0].vector = [float(k) for k in paramlines[1].split()]
                     cuds_entity.get(oclass = QE.CellParameterZ)[0].vector = [float(k) for k in paramlines[2].split()]
 
+            # How the cuds simulation should be updated depending on what calculation type
             if self._session._calculation_type == "scf":
                 with open(self._file_path_root + self._session._output_file, "r+") as file:
                     print("testingggg")
@@ -223,8 +229,11 @@ class qeUtils():
             if self._session._calculation_type == "bands":
                 pass
 
-        if self._session._command_type == "ev.x":
-            pass
 
+        if self._session._command_type == "ev.x":
+            # TODO: this
+            pass
+        
+        # Return the bands.dat file produced. This way it can be accessed by dsms
         if self._session._command_type == "bands.x":
             sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))

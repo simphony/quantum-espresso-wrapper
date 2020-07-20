@@ -1,11 +1,7 @@
 import numpy as np
-from osp.core.namespaces import CUBA
 from osp.core.namespaces import QE
 from osp.core.utils import pretty_print
 from osp.wrappers.quantumespresso.qe_session import qeSession
-from osp.wrappers.quantumespresso.qe_utils import qeUtils
-
-import numpy as np
 
 # Creates simulation
 sim = QE.Simulation()
@@ -55,6 +51,7 @@ with qeSession(root) as session:
     quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf")
     quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
     quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
 
     # print("Results: ")
     # Pretty prints the simulation

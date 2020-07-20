@@ -115,3 +115,5 @@ build/lib/osp/wrappers/quantumespresso/qe_engine.py
 build/lib/osp/wrappers/quantumespresso/__init__.py
 build/lib/osp/wrappers/__init__.py
 build/lib/osp/__init__.py
+si.pwrelax.in
+si.pwrelax.out
