@@ -6,7 +6,6 @@ import numpy as np
 class qeUtils():
     """Utilities for reading and writing .in and .out files
     """
-    SystemSections = ('K_POINTS', 'CELL_PARAMETERS', 'ATOMIC_SPECIES', 'ATOMIC_POSITIONS')
 
 
     def __init__(self, session, root):
@@ -56,8 +55,18 @@ class qeUtils():
             self._session._calculation_type = ""
             self.sysinfo = []
 
-        elif self._sesion._command_type == "ev.x":
+        elif self._session._command_type == "ev.x":
             self._session._calculation_type = ""
+
+        elif self._session._command_type == "dos.x":
+            self.params = {
+                "DOS": {
+                    "outdir": "'.'",
+                    "prefix": f"'{self._session._prefix}'",
+                    "DeltaE": 0.05,
+                    "fildos": f"'{self._session._prefix}" + ".bands.dat'"
+                }
+            }
         
         # Update params based on kwargs
         for key1, value1 in self.params.items():
@@ -77,7 +86,7 @@ class qeUtils():
         if self._session._command_type == "pw.x":
 
             # Information about the system to be simulated
-            self.sysinfo = {"ATOMIC_SPECIES":[], "ATOMIC_POSITIONS {crystal}":[],"K_POINTS {automatic}":[], "CELL_PARAMETERS {alat}":[]}
+            self.sysinfo = {"ATOMIC_SPECIES":[[""]], "ATOMIC_POSITIONS":[["{crystal}"]],"K_POINTS":[["{automatic}"]], "CELL_PARAMETERS":[["{alat}"]]}
 
             self.params["SYSTEM"]["nat"] = _get_count(oclass = QE.Atom)
             self.params["SYSTEM"]["ntyp"] = _get_count(QE.Element)
@@ -90,13 +99,13 @@ class qeUtils():
             
             for atom in findo(QE.Atom, 2):
                 self.atomlist.append(atom)
-                self.sysinfo["ATOMIC_POSITIONS {crystal}"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
+                self.sysinfo["ATOMIC_POSITIONS"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
 
             for point in findo(QE.K_POINTS, 1):
-                self.sysinfo["K_POINTS {automatic}"].append([int(i) for i in point.vector] + [0, 0, 0])
+                self.sysinfo["K_POINTS"].append([int(i) for i in point.vector] + [0, 0, 0])
 
             for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
-                self.sysinfo["CELL_PARAMETERS {alat}"].append([i for i in param.vector])
+                self.sysinfo["CELL_PARAMETERS"].append([i for i in param.vector])
 
         self._session._input_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.in"
         self._session._output_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.out"
@@ -110,7 +119,7 @@ class qeUtils():
                 f.write("/\n")
             if self.sysinfo:
                 for key1, value1 in self.sysinfo.items():
-                    f.write(f" {key1} \n")
+                    f.write(f" {key1} ")
                     for i in value1:
                         f.write(" ".join(str(v) for v in i) + "\n")
 
@@ -229,6 +238,8 @@ class qeUtils():
             if self._session._calculation_type == "bands":
                 pass
 
+            if self._session._calculation_type == "nscf":
+                pass
 
         if self._session._command_type == "ev.x":
             # TODO: this
@@ -237,3 +248,6 @@ class qeUtils():
         # Return the bands.dat file produced. This way it can be accessed by dsms
         if self._session._command_type == "bands.x":
             sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))
+
+        if self._session._command_type == "dos.x":
+            sim.add(QE.DosDat(path = self._file_path_root + self._session._prefix + ".dos.dat"))

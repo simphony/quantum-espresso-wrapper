@@ -37,7 +37,6 @@ sim.add(k)
 sim.add(QE.Pressure(value = 100, unit = "kbar"))
 sim.add(QE.StressTensor(tensor2 = np.zeros((3, 3)), unit = "kbar"))
 root = ""
-pretty_print(sim)
 with qeSession(root) as session:
     # Adds session to wrapper
     quantum_espresso_wrapper = QE.QEWrapper(session = session)
@@ -48,11 +47,11 @@ with qeSession(root) as session:
     print("Running calculation...")
     
     # Runs the simulation
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf")
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
-
+    # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf")
+    # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
+    # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
+    # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "nscf", SYSTEM = {'occupations': "'tetrahedra'"})
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "dos.x", calculation_type = "")
     # print("Results: ")
     # Pretty prints the simulation
-    pretty_print(sim)

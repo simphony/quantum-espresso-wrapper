@@ -117,3 +117,7 @@ build/lib/osp/wrappers/__init__.py
 build/lib/osp/__init__.py
 si.pwrelax.in
 si.pwrelax.out
+si.dos.in
+si.dos.out
+si.pwnscf.out
+si.pwnscf.in

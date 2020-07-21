@@ -25,7 +25,7 @@ class qeSession(SimWrapperSession):
         self._calculation_type = calculation_type
 
         self._qe_utils._create_input(simulation, **kwargs)
-        # self._engine.run()
+        self._engine.run()
         self._qe_utils._update_cuds(simulation)
 
     def _load_from_backend(self, uids, expired=None):
