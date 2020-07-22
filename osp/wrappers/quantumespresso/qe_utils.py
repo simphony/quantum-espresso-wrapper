@@ -64,10 +64,34 @@ class qeUtils():
                     "outdir": "'.'",
                     "prefix": f"'{self._session._prefix}'",
                     "DeltaE": 0.05,
-                    "fildos": f"'{self._session._prefix}" + ".bands.dat'"
+                    "fildos": f"'{self._session._prefix}" + ".dos.dat'"
                 }
             }
         
+        elif self._session._command_type == "pp.x":
+            self.params = {
+                "INPUTPP": {
+                    "prefix": f"'{self._session._prefix}'",
+                    "outdir":  "'.'",
+                    "filplot": f"'{self._session._prefix}.pp{self._session._calculation_type}.txt'",
+                    # Note that plot_num is strictly int, reference to the significance of each values can be found here: https://www.quantum-espresso.org/Doc/INPUT_PP.html
+                    # We use calculation type because it is already in use
+                    "plot_num": self._session._calculation_type
+                },
+                "PLOT": {
+                    "nfile": 1,
+                    "iflag": 3,
+                    "output_format": 3,
+                    "fileout": f"'{self._session._prefix}{self._session._calculation_type}.pp.xsf'",
+                    "nx": 101,
+                    "ny": 101,
+                    "nz": 101
+                    # TODO: add support for manual vectors here
+                    # TODO: add support for variable output formats
+                }
+
+            }
+
         # Update params based on kwargs
         for key1, value1 in self.params.items():
             for key2, value2 in kwargs.items():
@@ -117,7 +141,7 @@ class qeUtils():
                 for key2, value2 in value1.items():
                     f.write(f"  {key2} = {value2} \n")
                 f.write("/\n")
-            if self.sysinfo:
+            if self._session._command_type == "pw.x":
                 for key1, value1 in self.sysinfo.items():
                     f.write(f" {key1} ")
                     for i in value1:
@@ -241,13 +265,17 @@ class qeUtils():
             if self._session._calculation_type == "nscf":
                 pass
 
-        if self._session._command_type == "ev.x":
+        elif self._session._command_type == "ev.x":
             # TODO: this
             pass
         
-        # Return the bands.dat file produced. This way it can be accessed by dsms
-        if self._session._command_type == "bands.x":
+        # Return the bands.dat file produced. This way it can be accessed by dsms?
+        # TODO: check for error messages in outputs
+        elif self._session._command_type == "bands.x":
             sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))
 
-        if self._session._command_type == "dos.x":
+        elif self._session._command_type == "dos.x":
             sim.add(QE.DosDat(path = self._file_path_root + self._session._prefix + ".dos.dat"))
+
+        elif self._session._command_type == "pp.x":
+            sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))

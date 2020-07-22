@@ -218,6 +218,10 @@ ontology:
         subclass_of:
             - CUBA.File
 
+    XSF:
+        subclass_of:
+            - CUBA.File
+
 
 
 

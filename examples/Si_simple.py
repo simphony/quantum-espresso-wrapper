@@ -51,7 +51,9 @@ with qeSession(root) as session:
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "nscf", SYSTEM = {'occupations': "'tetrahedra'"})
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "dos.x", calculation_type = "")
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
+    # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "dos.x", calculation_type = "")
+    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pp.x", calculation_type = 9)
+    pretty_print(sim)
     # print("Results: ")
     # Pretty prints the simulation
