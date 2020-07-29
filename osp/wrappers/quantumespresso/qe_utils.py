@@ -16,9 +16,10 @@ class qeUtils():
         """
         self._session = session
         self._file_path_root = root
+        self.params = {}
 
     def _create_input(self, sim, **kwargs):
-        
+
         # Useful CUDS object finding tool with shorter name
         def findo(oclass, depth):
             return simple_search.find_cuds_objects_by_oclass(oclass = oclass, root = sim, rel = QE.HAS_PART)
@@ -54,9 +55,6 @@ class qeUtils():
             }
             self._session._calculation_type = ""
             self.sysinfo = []
-
-        elif self._session._command_type == "ev.x":
-            self._session._calculation_type = ""
 
         elif self._session._command_type == "dos.x":
             self.params = {
@@ -131,9 +129,6 @@ class qeUtils():
             for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
                 self.sysinfo["CELL_PARAMETERS"].append([i for i in param.vector])
 
-        self._session._input_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.in"
-        self._session._output_file = f"{self._session._prefix}.{self._session._command_type[:-2]}{self._session._calculation_type}.out"
-
         # Writes to file based on params and sys
         with open(self._file_path_root + self._session._input_file, "w+") as f:
             for key1, value1 in self.params.items():
@@ -146,6 +141,16 @@ class qeUtils():
                     f.write(f" {key1} ")
                     for i in value1:
                         f.write(" ".join(str(v) for v in i) + "\n")
+
+        if self._session._command_type == "ev.x":
+            with open(self._file_path_root + self._session._input_file, "w+") as f:
+                try:
+                    for s in sim:
+                        total_energy = simple_search.find_cuds_objects_by_oclass(oclass = QE.TotalEnergy, root = s, rel = QE.HAS_PART)[0].value
+                        volume = simple_search.find_cuds_objects_by_oclass(oclass = QE.Volume, root = s, rel = QE.HAS_PART)[0].value
+                        f.write(f"{volume} {total_energy}\n")
+                except TypeError:
+                    print("ev.x requires simulation to be a list containing simulations to be evaluated")
 
     def _update_cuds(self, sim):
 
@@ -224,6 +229,16 @@ class qeUtils():
                     cuds_entity.get(oclass = QE.CellParameterY)[0].vector = [float(k) for k in paramlines[1].split()]
                     cuds_entity.get(oclass = QE.CellParameterZ)[0].vector = [float(k) for k in paramlines[2].split()]
 
+            def update_volume(line):
+                if line.startswith("     unit-cell volume"):
+                    volume = float(line.split()[3])
+                    cuds_entity = sim.get(oclass = QE.Cell)[0].get(oclass = QE.Volume)
+                    if cuds_entity:
+                        cuds_entity[0].value = volume
+                        cuds_entity[0].unit = "au^3"
+                    else:
+                        sim.get(oclass = QE.Cell)[0].add(QE.Volume(value = volume, unit = "au^3"))
+
             # How the cuds simulation should be updated depending on what calculation type
             if self._session._calculation_type == "scf":
                 with open(self._file_path_root + self._session._output_file, "r+") as file:
@@ -234,6 +249,7 @@ class qeUtils():
                         update_pressure(line)
                         update_force(line)
                         update_stress_tensor(i, line)
+                        update_volume(line)
 
                 print(self._file_path_root + self._session._output_file)
 
@@ -246,6 +262,7 @@ class qeUtils():
                         update_force(line)
                         update_stress_tensor(i, line)
                         update_atomic_positions(i, line)
+                        update_volume(line)
 
             
             if self._session._calculation_type == "vc-relax":
@@ -258,16 +275,13 @@ class qeUtils():
                         update_stress_tensor(i, line)
                         update_atomic_positions(i, line)
                         update_celldm1(i, line)
+                        update_volume(line)
 
             if self._session._calculation_type == "bands":
                 pass
 
             if self._session._calculation_type == "nscf":
                 pass
-
-        elif self._session._command_type == "ev.x":
-            # TODO: this
-            pass
         
         # Return the bands.dat file produced. This way it can be accessed by dsms?
         # TODO: check for error messages in outputs
@@ -279,3 +293,25 @@ class qeUtils():
 
         elif self._session._command_type == "pp.x":
             sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
+
+        elif self._session._command_type == "ev.x":
+            print("ya boiiii")
+            with open(self._file_path_root + self._session._output_file, 'r') as file:
+                lines = file.readlines()
+                v0 = lines[1].split()[3]
+                b0 = lines[1].split()[6][1:]
+                print(v0, b0)
+                for s in sim:
+                    volume_entity = s.get(oclass = QE.Cell)[0].get(oclass = QE.EquilibriumVolume)
+                    modulus_entity = s.get(oclass = QE.BulkModulus)
+                    if volume_entity:
+                        volume_entity[0].value = v0
+                        volume_entity[0].unit = "au^3"
+                    else:
+                        s.get(oclass = QE.Cell)[0].add(QE.EquilibriumVolume(value = v0, unit = "au^3"))
+                    if modulus_entity:
+                        modulus_entity[0].value = b0
+                        volume_entity[0].unit = "kbar"
+                    else:
+                        s.add(QE.BulkModulus(value = b0, unit = "kbar"))
+                    

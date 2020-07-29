@@ -37,6 +37,16 @@ sim.add(k)
 sim.add(QE.Pressure(value = 100, unit = "kbar"))
 sim.add(QE.StressTensor(tensor2 = np.zeros((3, 3)), unit = "kbar"))
 root = ""
+SiCell.add(QE.Volume(value = 22, unit = "au^3"))
+sim.add(QE.TotalEnergy(value = -434, unit = "Ry"))
+
+sim2 = QE.Simulation()
+fd = QE.Cell()
+sim2.add(fd)
+
+fd.add(QE.Volume(value = 33, unit = "au^3"))
+sim2.add(QE.TotalEnergy(value = -432, unit = "Ry"))
+ 
 with qeSession(root) as session:
     # Adds session to wrapper
     quantum_espresso_wrapper = QE.QEWrapper(session = session)
@@ -45,15 +55,19 @@ with qeSession(root) as session:
     # pretty_print(sim)
     # Creates a qeUtil object and creates an input file based off of the simulation
     print("Running calculation...")
-    
     # Runs the simulation
+    pretty_print(quantum_espresso_wrapper)
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf")
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "bands")
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "bands.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
+    # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
     # quantum_espresso_wrapper.session._run(prefix = "si", command_type = "dos.x", calculation_type = "")
-    quantum_espresso_wrapper.session._run(prefix = "si", command_type = "pp.x", calculation_type = 9)
+    # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = 9)
+    quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
+    
     pretty_print(sim)
+    pretty_print(sim2)
     # print("Results: ")
     # Pretty prints the simulation
+

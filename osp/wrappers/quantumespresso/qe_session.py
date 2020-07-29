@@ -16,13 +16,15 @@ class qeSession(SimWrapperSession):
     def __str__(self):
         return "Quantum Espresso Wrapper Session"
 
-    def _run(self, prefix, command_type = "pw.x", calculation_type = "scf", **kwargs):
-        root = self._registry.get(self.root)
-        simulation = root.get(oclass = QE.Simulation)[0]
-
+    def _run(self, simulation, prefix, command_type = "pw.x", calculation_type = "scf", **kwargs):
         self._prefix = prefix
         self._command_type = command_type
         self._calculation_type = calculation_type
+
+        self._input_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.in"
+        self._output_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.out"
+
+        print(self._input_file, self._output_file)
 
         self._qe_utils._create_input(simulation, **kwargs)
         self._engine.run()

@@ -176,7 +176,14 @@ ontology:
         subclass_of:
             - QE.PhysicalQuantityVector
 
-                
+    Volume:
+        subclass_of:
+            - QE.PhysicalQuantity
+
+    EquilibriumVolume:
+        subclass_of:
+            - QE.PhysicalQuantity
+
     ############################ Attributes
 
     value:
