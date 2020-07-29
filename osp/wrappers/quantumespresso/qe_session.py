@@ -24,8 +24,6 @@ class qeSession(SimWrapperSession):
         self._input_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.in"
         self._output_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.out"
 
-        print(self._input_file, self._output_file)
-
         self._qe_utils._create_input(simulation, **kwargs)
         self._engine.run()
         self._qe_utils._update_cuds(simulation)

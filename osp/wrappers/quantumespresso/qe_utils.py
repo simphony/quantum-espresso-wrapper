@@ -205,8 +205,6 @@ class qeUtils():
             def update_atomic_positions(i, line):
                 if line.startswith("Begin"):
                     positionslines = [lines[i+j] for j in range(3, 3+len(self.atomlist))]
-                    print(self.atomlist)
-                    print(positionslines)
                     for j, line in enumerate(positionslines):
                         atom = self.atomlist[j]
                         position = [float(line.split()[k]) for k in range(1, 4)]
@@ -242,7 +240,6 @@ class qeUtils():
             # How the cuds simulation should be updated depending on what calculation type
             if self._session._calculation_type == "scf":
                 with open(self._file_path_root + self._session._output_file, "r+") as file:
-                    print("testingggg")
                     lines = file.readlines()
                     for i, line in enumerate(lines):
                         update_total_energy(line)
@@ -250,8 +247,6 @@ class qeUtils():
                         update_force(line)
                         update_stress_tensor(i, line)
                         update_volume(line)
-
-                print(self._file_path_root + self._session._output_file)
 
             if self._session._calculation_type == "relax":
                 with open(self._file_path_root + self._session._output_file, "r+") as file:
@@ -295,12 +290,10 @@ class qeUtils():
             sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
 
         elif self._session._command_type == "ev.x":
-            print("ya boiiii")
             with open(self._file_path_root + self._session._output_file, 'r') as file:
                 lines = file.readlines()
                 v0 = lines[1].split()[3]
                 b0 = lines[1].split()[6][1:]
-                print(v0, b0)
                 for s in sim:
                     volume_entity = s.get(oclass = QE.Cell)[0].get(oclass = QE.EquilibriumVolume)
                     modulus_entity = s.get(oclass = QE.BulkModulus)
