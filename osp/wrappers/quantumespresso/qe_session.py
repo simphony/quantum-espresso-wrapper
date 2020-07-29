@@ -21,9 +21,11 @@ class qeSession(SimWrapperSession):
         self._command_type = command_type
         self._calculation_type = calculation_type
 
+        # Sets input and output files
         self._input_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.in"
         self._output_file = f"{self._prefix}.{self._command_type[:-2]}{self._calculation_type}.out"
 
+        # Creates input, runs, and updates the cuds structure
         self._qe_utils._create_input(simulation, **kwargs)
         self._engine.run()
         self._qe_utils._update_cuds(simulation)

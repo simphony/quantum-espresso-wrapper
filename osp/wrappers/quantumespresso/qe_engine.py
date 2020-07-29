@@ -1,6 +1,5 @@
 import subprocess
 import pexpect
-import sys
 
 class SimulationEngine:
 
@@ -11,6 +10,9 @@ class SimulationEngine:
         
         input_file = self._session._input_file
         output_file = self._session._output_file
+
+        # Using pexpect, interacts with the ev.x command using certain variables
+        # Couldn't find any other way to do this, if someone can do it better, please let me know
         if self._session._command_type == "ev.x":
             child = pexpect.spawn('ev.x')
             child.expect('au')
@@ -25,6 +27,7 @@ class SimulationEngine:
             child.sendline(output_file)
             child.wait()
 
+        # Runs the command in the usual way
         else:
             command = [self._session._command_type, "-i", input_file, ">", output_file]
             try:
@@ -32,4 +35,3 @@ class SimulationEngine:
                 print(" ".join(command))
             except:
                 raise RuntimeError(f"An error occured when running the following command: {command}")
-            return None

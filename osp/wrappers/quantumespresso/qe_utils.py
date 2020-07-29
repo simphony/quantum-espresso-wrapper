@@ -19,6 +19,13 @@ class qeUtils():
         self.params = {}
 
     def _create_input(self, sim, **kwargs):
+        """Creates input file(s) necessary to perform the calculations
+
+        Args:
+            sim (QE.Simulation or list of QE.Simulations): the simulation on which to perform the calculation.
+            For calculations that require multiple simulations and aggregate the data (such as ev.x), please provide a list of strings.
+
+        """
 
         # Useful CUDS object finding tool with shorter name
         def findo(oclass, depth):
@@ -153,7 +160,16 @@ class qeUtils():
                     print("ev.x requires simulation to be a list containing simulations to be evaluated")
 
     def _update_cuds(self, sim):
+        """Based off of the structure
 
+        Args:
+            sim (QE.Simulation or list of QE.Simulations): the simulation for which cuds should be updated.
+            For calculations that require multiple simulations and aggregate the data (such as ev.x), please provide a list of strings.
+        """
+
+        # The following ifs update the physical values in the cuds simulation object(s) directly
+
+        # Updates a variety of physical quantities and tensors depending on the calculation type
         if self._session._command_type == "pw.x":
 
             sim.add(QE.PwOut(path = self._file_path_root + self._session._output_file))
@@ -278,17 +294,7 @@ class qeUtils():
             if self._session._calculation_type == "nscf":
                 pass
         
-        # Return the bands.dat file produced. This way it can be accessed by dsms?
-        # TODO: check for error messages in outputs
-        elif self._session._command_type == "bands.x":
-            sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))
-
-        elif self._session._command_type == "dos.x":
-            sim.add(QE.DosDat(path = self._file_path_root + self._session._prefix + ".dos.dat"))
-
-        elif self._session._command_type == "pp.x":
-            sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
-
+        # Updates/adds equilibrium and bulk modulus
         elif self._session._command_type == "ev.x":
             with open(self._file_path_root + self._session._output_file, 'r') as file:
                 lines = file.readlines()
@@ -307,4 +313,17 @@ class qeUtils():
                         volume_entity[0].unit = "kbar"
                     else:
                         s.add(QE.BulkModulus(value = b0, unit = "kbar"))
+
+        # The following ifs only add a file to the simulation containing the data, either because there is too much information or
+        # it cannot be converted practically to cuds objects
+        elif self._session._command_type == "bands.x":
+            sim.add(QE.BandsDat(path = self._file_path_root + self._session._prefix + ".bands.dat"))
+
+        elif self._session._command_type == "dos.x":
+            sim.add(QE.DosDat(path = self._file_path_root + self._session._prefix + ".dos.dat"))
+
+        elif self._session._command_type == "pp.x":
+            sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
+
+
                     
