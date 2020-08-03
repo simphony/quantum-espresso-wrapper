@@ -132,3 +132,6 @@ input_tmp.in
 si.ev1.in
 si.ev1.out
 si.ev1.out.xml
+osp/wrappers/quantumespresso/__pycache__/qe_utilsv2.cpython-38.pyc
+si9.pp.xsf
+si.dos.dat

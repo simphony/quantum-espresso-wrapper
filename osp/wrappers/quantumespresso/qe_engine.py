@@ -2,7 +2,6 @@ import subprocess
 import pexpect
 
 class SimulationEngine:
-
     def __init__(self, session):
         self._session = session
 
