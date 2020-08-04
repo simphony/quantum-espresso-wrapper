@@ -167,7 +167,6 @@ ontology:
             - QE.PhysicalQuantityVector
 
     Pressure:
-        description: Pressure. What else could it be...
         subclass_of:
             - QE.PhysicalQuantity
 
@@ -183,6 +182,20 @@ ontology:
     EquilibriumVolume:
         subclass_of:
             - QE.PhysicalQuantity
+
+    Frequency:
+        subclass_of:
+            - QE.PhysicalQuantity
+    
+    QPoint:
+        subclass_of:
+            - QE.PhysicalQuantityVector
+
+    Mode:
+        attributes:
+            QE.number:
+        subclass_of:
+            - CUBA.Entity
 
     ############################ Attributes
 
@@ -211,6 +224,11 @@ ontology:
             - CUBA.attribute
         datatype: STRING
 
+    number:
+        subclass_of:
+            - CUBA.attribute
+        datatype: INT
+
     ############################ Various extensions to be implemented
 
     BandsDat:
@@ -226,6 +244,18 @@ ontology:
             - CUBA.File
 
     XSF:
+        subclass_of:
+            - CUBA.File
+
+    PhOut:
+        subclass_of:
+            - CUBA.File
+    
+    EvOut:
+        subclass_of:
+            - CUBA.File
+
+    DynMat:
         subclass_of:
             - CUBA.File
 

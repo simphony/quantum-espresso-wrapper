@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<?iotk version="1.2.0"?>
+<?iotk file_version="1.0"?>
+<?iotk binary="F"?>
+<?iotk qe_syntax="F"?>
+<Root>
+  <IRREPS_INFO>
+    <QPOINT_NUMBER type="integer" size="1">
+         1
+    </QPOINT_NUMBER>
+    <QPOINT_GROUP_RANK type="integer" size="1">
+        48
+    </QPOINT_GROUP_RANK>
+    <MINUS_Q_SYM type="logical" size="1">
+T
+    </MINUS_Q_SYM>
+    <NUMBER_IRR_REP type="integer" size="1">
+         1
+    </NUMBER_IRR_REP>
+    <REPRESENTION.1>
+      <NUMBER_OF_PERTURBATIONS type="integer" size="1">
+         3
+      </NUMBER_OF_PERTURBATIONS>
+      <PERTURBATION.1>
+        <SYMMETRY_TYPE_CODE type="integer" size="1">
+         9
+        </SYMMETRY_TYPE_CODE>
+        <SYMMETRY_TYPE type="character" size="1" len="15">
+T_1u G_15  G_4-
+        </SYMMETRY_TYPE>
+        <DISPLACEMENT_PATTERN type="complex" size="3">
+-2.521995029309065E-001,-0.000000000000000E+000
+-5.639352324451644E-001,-0.000000000000000E+000
+-7.863666220843953E-001,-0.000000000000000E+000
+        </DISPLACEMENT_PATTERN>
+      </PERTURBATION.1>
+      <PERTURBATION.2>
+        <SYMMETRY_TYPE_CODE type="integer" size="1">
+         9
+        </SYMMETRY_TYPE_CODE>
+        <SYMMETRY_TYPE type="character" size="1" len="15">
+T_1u G_15  G_4-
+        </SYMMETRY_TYPE>
+        <DISPLACEMENT_PATTERN type="complex" size="3">
+-9.077528848582509E-001,-0.000000000000000E+000
+-1.436470000941577E-001,-0.000000000000000E+000
+ 3.941449471900813E-001,-0.000000000000000E+000
+        </DISPLACEMENT_PATTERN>
+      </PERTURBATION.2>
+      <PERTURBATION.3>
+        <SYMMETRY_TYPE_CODE type="integer" size="1">
+         9
+        </SYMMETRY_TYPE_CODE>
+        <SYMMETRY_TYPE type="character" size="1" len="15">
+T_1u G_15  G_4-
+        </SYMMETRY_TYPE>
+        <DISPLACEMENT_PATTERN type="complex" size="3">
+-3.352314286473249E-001,-0.000000000000000E+000
+ 8.132297295174147E-001, 0.000000000000000E+000
+-4.756861321040439E-001,-0.000000000000000E+000
+        </DISPLACEMENT_PATTERN>
+      </PERTURBATION.3>
+    </REPRESENTION.1>
+  </IRREPS_INFO>
+</Root>
+

@@ -2,7 +2,7 @@ from osp.core.session import SimWrapperSession
 from osp.core.namespaces import QE
 from osp.wrappers.quantumespresso.qe_engine import SimulationEngine
 from osp.wrappers.quantumespresso.qe_utils import qeUtils
-import osp.wrappers.quantumespresso.qe_utilsv2
+import osp.wrappers.quantumespresso.qe_utils
 from osp.core.utils import simple_search
 
 class qeSession(SimWrapperSession):
@@ -18,7 +18,7 @@ class qeSession(SimWrapperSession):
         return "Quantum Espresso Wrapper Session"
 
     def _run(self, simulation, prefix, command_type = "pw.x", calculation_type = "scf", **kwargs):
-        self._qe_utils = getattr(osp.wrappers.quantumespresso.qe_utilsv2, f"{command_type[:-2]}Utils")(self, root = "")
+        self._qe_utils = getattr(osp.wrappers.quantumespresso.qe_utils, f"{command_type[:-2]}Utils")(self, root = "")
         
         self._prefix = prefix
         self._command_type = command_type

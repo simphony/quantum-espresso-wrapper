@@ -30,7 +30,7 @@ class SimulationEngine:
         else:
             command = [self._session._command_type, "-i", input_file, ">", output_file]
             try:
-                proc = subprocess.run(" ".join(command), capture_output = True, shell = True)
+                # proc = subprocess.run(" ".join(command), capture_output = True, shell = True)
                 print(" ".join(command))
             except:
                 raise RuntimeError(f"An error occured when running the following command: {command}")

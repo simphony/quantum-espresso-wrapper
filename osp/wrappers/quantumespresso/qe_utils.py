@@ -38,7 +38,7 @@ class qeUtils():
                 for key2, value2 in value1.items():
                     f.write(f"  {key2} = {value2} \n")
                 f.write("/\n")
-            if self._session._command_type == "pw.x": # TODO: find a way to put this in the pwUtils class
+            if self._session._command_type == "pw.x" or self._session._command_type == "ph.x": # TODO: find a way to put this in the pwUtils class
                 for key1, value1 in self.sysinfo.items():
                     f.write(f" {key1} ")
                     for i in value1:
@@ -312,13 +312,55 @@ class evUtils(qeUtils):
                 volume_entity = s.get(oclass = QE.Cell)[0].get(oclass = QE.EquilibriumVolume)
                 modulus_entity = s.get(oclass = QE.BulkModulus)
                 if volume_entity:
-                    volume_entity[0].value = v0
+                    volume_entity[0].value = float(v0)
                     volume_entity[0].unit = "au^3"
                 else:
                     s.get(oclass = QE.Cell)[0].add(QE.EquilibriumVolume(value = v0, unit = "au^3"))
                 if modulus_entity:
-                    modulus_entity[0].value = b0
+                    modulus_entity[0].value = float(b0)
                     volume_entity[0].unit = "kbar"
                 else:
                     s.add(QE.BulkModulus(value = b0, unit = "kbar"))
+        super()._update_cuds(sim)
+
+class phUtils(qeUtils):
+    def _create_input(self, sim, **kwargs):
+        self.params = {
+            "INPUTPH": {
+                "outdir": "'.'",
+                "prefix": f"'{self._session._prefix}'",
+                "fildyn": f"'{self._session._prefix}.ph.dyn'"
+            }
+        }
+        try:
+            if self.params["ldisp"] != ".true." and self.params["qplot"] != ".true.":
+                self.sysinfo = {
+                    "": [["0 0 0"]] 
+                                    # TODO: manual q point
+                                    # TODO: add support for multiple q points
+            }
+            else:
+                self.sysinfo = {}
+        except:
+            self.sysinfo = {}
+        super()._create_input(sim, **kwargs)
+
+    def _update_cuds(self, sim):
+        sim.add(QE.PhOut(path = self._file_path_root + self._session._output_file))
+        with open(self._file_path_root + self._session._output_file, 'r') as file:
+            lines = file.readlines()
+            beginend = []
+            for i, line in enumerate(lines):
+                if line.startswith(" ****"):
+                    beginend.append(i)
+            q_point = sim.get(oclass = QE.QPoint)
+            for i in range(beginend[0]+1, beginend[1]):
+                freq = float(lines[i].split()[4])
+                modenum = int(lines[i].split()[2][:-1])
+                freq_entity = sim.get(oclass = QE.Mode)
+                unit = lines[i].split()[5][1:-1]
+            
+
+                    
+            
         super()._update_cuds(sim)

@@ -56,18 +56,19 @@ with qeSession(root) as session:
     # Creates a qeUtil object and creates an input file based off of the simulation
     print("Running calculation...")
     # Runs the simulation
-    pretty_print(quantum_espresso_wrapper)
+    # pretty_print(quantum_espresso_wrapper)
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "bands")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "bands.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "dos.x", calculation_type = "")
-    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = "9")
-    quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
+    # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = "9")
+    # quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
+    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "ph.x", calculation_type = "")
     
-    pretty_print(sim)
-    pretty_print(sim2)
+    # pretty_print(sim)
+    # pretty_print(sim2)
     # print("Results: ")
     # Pretty prints the simulation
 
