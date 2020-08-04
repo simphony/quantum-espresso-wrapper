@@ -332,6 +332,10 @@ class phUtils(qeUtils):
                 "fildyn": f"'{self._session._prefix}.ph.dyn'"
             }
         }
+        self.qpoints = []
+        for point in sim.get(oclass = QE.QPoint):
+            if point.calculate == True:
+                self.qpoints.append(point)
         try:
             if self.params["ldisp"] != ".true." and self.params["qplot"] != ".true.":
                 self.sysinfo = {
@@ -353,14 +357,17 @@ class phUtils(qeUtils):
             for i, line in enumerate(lines):
                 if line.startswith(" ****"):
                     beginend.append(i)
-            q_point = sim.get(oclass = QE.QPoint)
+            q_point = self.qpoints[0]
             for i in range(beginend[0]+1, beginend[1]):
                 freq = float(lines[i].split()[4])
                 modenum = int(lines[i].split()[2][:-1])
-                freq_entity = sim.get(oclass = QE.Mode)
                 unit = lines[i].split()[5][1:-1]
-            
-
-                    
+                for mode in q_point.get(oclass = QE.Mode):
+                    if mode.number == modenum:
+                        if mode.get(oclass = QE.Frequency):
+                            mode.get(oclass = QE.Frequency)[0].value = freq
+                            mode.get(oclass = QE.Frequency)[0].unit = unit
+                        else:
+                            mode.add(QE.Frequency(value = freq, unit = unit))
             
         super()._update_cuds(sim)

@@ -190,6 +190,8 @@ ontology:
     QPoint:
         subclass_of:
             - QE.PhysicalQuantityVector
+        attributes:
+            QE.calculate:
 
     Mode:
         attributes:
@@ -228,6 +230,11 @@ ontology:
         subclass_of:
             - CUBA.attribute
         datatype: INT
+
+    calculate:
+        subclass_of:
+            - CUBA.attribute
+        datatype: BOOL
 
     ############################ Various extensions to be implemented
 

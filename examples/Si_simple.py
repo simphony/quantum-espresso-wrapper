@@ -39,6 +39,11 @@ sim.add(QE.StressTensor(tensor2 = np.zeros((3, 3)), unit = "kbar"))
 root = ""
 SiCell.add(QE.Volume(value = 22, unit = "au^3"))
 sim.add(QE.TotalEnergy(value = -434, unit = "Ry"))
+q = QE.QPoint(vector = (0, 0, 0), unit = "", calculate = True)
+sim.add(q)
+q.add(QE.Mode(number = 3))
+q.add(QE.Mode(number = 2))
+q.add(QE.Mode(number = 1))
 
 sim2 = QE.Simulation()
 fd = QE.Cell()
@@ -67,7 +72,7 @@ with qeSession(root) as session:
     # quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
     quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "ph.x", calculation_type = "")
     
-    # pretty_print(sim)
+    pretty_print(sim)
     # pretty_print(sim2)
     # print("Results: ")
     # Pretty prints the simulation
