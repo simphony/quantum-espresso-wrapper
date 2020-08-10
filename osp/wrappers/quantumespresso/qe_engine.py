@@ -7,8 +7,8 @@ class SimulationEngine:
 
     def run(self):
         
-        input_file = self._session._input_file
-        output_file = self._session._output_file
+        input_file = self._session._qe_utils._file_path_root + self._session._input_file
+        output_file = self._session._qe_utils._file_path_root + self._session._output_file
 
         # Using pexpect, interacts with the ev.x command using certain variables
         # Couldn't find any other way to do this, if someone can do it better, please let me know
@@ -30,7 +30,7 @@ class SimulationEngine:
         else:
             command = [self._session._command_type, "-i", input_file, ">", output_file]
             try:
-                # proc = subprocess.run(" ".join(command), capture_output = True, shell = True)
+                proc = subprocess.run(" ".join(command), capture_output = True, shell = True)
                 print(" ".join(command))
             except:
                 raise RuntimeError(f"An error occured when running the following command: {command}")

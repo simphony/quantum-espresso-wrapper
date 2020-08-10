@@ -32,6 +32,7 @@ class qeUtils():
                     value1.update(value2)
 
         # Writes to file based on params and sys
+        print(self._file_path_root + self._session._input_file)
         with open(self._file_path_root + self._session._input_file, "w+") as f:
             for key1, value1 in self.params.items():
                 f.write(f"&{key1} \n")
@@ -59,7 +60,7 @@ class pwUtils(qeUtils):
         self.params = {
                 "CONTROL": {
                     "calculation": f"'{self._session._calculation_type}'",
-                    "pseudo_dir": "'$PSEUDO_DIR'",
+                    "pseudo_dir": "'.'",
                     "tprnfor": ".true.",
                     "tstress": ".true.",
                     "prefix": f"'{self._session._prefix}'",
@@ -195,6 +196,7 @@ class pwUtils(qeUtils):
                     sim.get(oclass = QE.Cell)[0].add(QE.Volume(value = volume, unit = "au^3"))
 
         # How the cuds simulation should be updated depending on what calculation type
+        # Test
         if self._session._calculation_type == "scf":
             with open(self._file_path_root + self._session._output_file, "r+") as file:
                 lines = file.readlines()
@@ -369,5 +371,28 @@ class phUtils(qeUtils):
                             mode.get(oclass = QE.Frequency)[0].unit = unit
                         else:
                             mode.add(QE.Frequency(value = freq, unit = unit))
-            
+
         super()._update_cuds(sim)
+
+class alpha2fUtils(qeUtils):
+    def _create_input(self, sim, **kwargs):
+        self.params = {
+            "INPUTPH": {
+                "outdir": "'.'",
+                "prefix": f"'{self._session._prefix}'",
+                "fildyn": f"'{self._session._prefix}.ph.dyn'"
+            },
+            "INPUTa2F": {
+                "nfreq": 500
+            }
+        }
+        super()._create_input(sim, **kwargs)
+
+    def _update_cuds(self, sim):
+
+        super()._update_cuds(sim)
+
+# class epaUtils(qeUtils):
+#     def _create_input(self, sim, **kwargs):
+#         with open(self._file_path_root + self._session._input_file, "w+") as file:
+            

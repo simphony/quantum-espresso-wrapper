@@ -7,7 +7,7 @@ with open('README.md', 'r') as readme:
 #Main setup configuration class
 setup(
     name = 'quantum-espresso',
-    version = '0.1',
+    version = '1.0',
     author = 'Materials Informatics team, Fraunhofer IWM',
     description = 'Simulation wrapper for Quantum Espresso/SimPhoNy',
     long_description = README_TEXT,

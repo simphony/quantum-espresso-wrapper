@@ -199,6 +199,10 @@ ontology:
         subclass_of:
             - CUBA.Entity
 
+    DielectricTensor:
+        subclass_of:
+            - QE.PhysicalQuantityTensor2
+
     ############################ Attributes
 
     value:
