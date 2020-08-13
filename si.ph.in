@@ -1,5 +1,0 @@
-&INPUTPH 
-  outdir = '.' 
-  prefix = 'si' 
-  fildyn = 'si.ph.dyn' 
-/

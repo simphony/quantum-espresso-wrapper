@@ -1,5 +1,6 @@
 import subprocess
 import pexpect
+import osp.wrappers.quantumespresso.qe_utils
 
 class SimulationEngine:
     def __init__(self, session):
@@ -12,19 +13,26 @@ class SimulationEngine:
 
         # Using pexpect, interacts with the ev.x command using certain variables
         # Couldn't find any other way to do this, if someone can do it better, please let me know
-        if self._session._command_type == "ev.x":
-            child = pexpect.spawn('ev.x')
-            child.expect('au')
-            child.sendline('au')
-            child.expect('fcc')
-            child.sendline('noncubic')
-            child.expect('1')
-            child.sendline(self._session._calculation_type)
-            child.expect('Input')
-            child.sendline(input_file)
-            child.expect('Output')
-            child.sendline(output_file)
+        if self._session._qe_utils.__class__.__base__ == osp.wrappers.quantumespresso.qe_utils.cliUtils:
+            child = pexpect.spawn(self._session._command_type)
+            for i, j in self._session._qe_utils.params.items():
+                child.expect(i)
+                child.sendline(j)
             child.wait()
+
+        # if self._session._command_type == "ev.x":
+        #     child = pexpect.spawn('ev.x')
+        #     child.expect('au')
+        #     child.sendline('au')
+        #     child.expect('fcc')
+        #     child.sendline('noncubic')
+        #     child.expect('1')
+        #     child.sendline(self._session._calculation_type)
+        #     child.expect('Input')
+        #     child.sendline(input_file)
+        #     child.expect('Output')
+        #     child.sendline(output_file)
+        #     child.wait()
 
         # Runs the command in the usual way
         else:

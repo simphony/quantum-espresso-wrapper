@@ -1,0 +1,301 @@
+Documentation of structure of Quantum Espresso
+
+By card:
+--------
+
+&CONTROL
+    ...
+/
+&SYSTEM
+    ...
+/
+&ELECTRONS
+    ...
+/
+&IONS
+    ...
+/
+&CELL
+    ...
+/
+
+---------------------------------------------------------------------------------------------------
+
+Not optional. Each atom in the unit cell, their mass, and their pseudopotential file.
+Structure is as follows:
+-  qe.Element cuds object named <Element Name>:
+        |_Relationship qe.HAS_PART:
+        -  qe.Atom cuds object:
+        -  qe.Mass cuds object:
+        .  value: 28.085
+        .  unit: amu
+        -  qe.PSEUDOPOTENTIAL cuds object named <Si.pbe-n-kjpaw_psl.1.0.0.UPF>:
+Place the element at the top level of the simulation
+
+ATOMIC_SPECIES
+ X  Mass_X  PseudoPot_X
+ Y  Mass_Y  PseudoPot_Y
+ Z  Mass_Z  PseudoPot_Z
+
+---------------------------------------------------------------------------------------------------
+
+alat :
+atomic positions are in cartesian coordinates, in
+units of the lattice parameter (either celldm(1)
+or A). If no option is specified, 'alat' is assumed;
+not specifying units is DEPRECATED and will no
+longer be allowed in the future
+            
+bohr :
+atomic positions are in cartesian coordinate,
+in atomic units (i.e. Bohr radii)
+            
+angstrom :
+atomic positions are in cartesian coordinates, in Angstrom
+            
+crystal :
+atomic positions are in crystal coordinates, i.e.
+in relative coordinates of the primitive lattice
+vectors as defined either in card CELL_PARAMETERS
+or via the ibrav + celldm / a,b,c... variables
+            
+crystal_sg :
+atomic positions are in crystal coordinates, i.e.
+in relative coordinates of the primitive lattice.
+This option differs from the previous one because
+in this case only the symmetry inequivalent atoms
+are given. The variable space_group must indicate
+the space group number used to find the symmetry
+equivalent atoms. The other variables that control
+this option are uniqueb, origin_choice, and
+rhombohedral.
+
+if_pos determines whether that coordinate is free to move or not,
+with 0 signifying that coordinate cannot change, and 1 that the coordinate is variable.
+Only relevant in molecular dynamics or structural optimization calculations.
+With crystal_sg atomic coordinates the constraints are copied in all equivalent atoms.
+
+ATOMIC_POSITIONS { alat | bohr | crystal | angstrom | crystal_sg }
+  X 0.0  0.0  0.0  {if_pos(1) if_pos(2) if_pos(3)}
+  Y 0.5  0.0  0.0
+  Z 0.0  0.2  0.2
+
+---------------------------------------------------------------------------------------------------
+
+tpiba :
+read k-points in cartesian coordinates,
+in units of 2 pi/a (default)
+            
+automatic :
+automatically generated uniform grid of k-points, i.e,
+generates ( nk1, nk2, nk3 ) grid with ( sk1, sk2, sk3 ) offset.
+nk1, nk2, nk3 as in Monkhorst-Pack grids
+k1, k2, k3 must be 0 ( no offset ) or 1 ( grid displaced
+by half a grid step in the corresponding direction )
+BEWARE: only grids having the full symmetry of the crystal
+        work with tetrahedra. Some grids with offset may not work.
+            
+crystal :
+read k-points in crystal coordinates, i.e. in relative
+coordinates of the reciprocal lattice vectors
+            
+gamma :
+use k = 0 (no need to list k-point specifications after card)
+In this case wavefunctions can be chosen as real,
+and specialized subroutines optimized for calculations
+at the gamma point are used (memory and cpu requirements
+are reduced by approximately one half).
+            
+tpiba_b :
+Used for band-structure plots.
+See Doc/brillouin_zones.pdf for usage of BZ labels;
+otherwise, k-points are in units of  2 pi/a.
+nks points specify nks-1 lines in reciprocal space.
+Every couple of points identifies the initial and
+final point of a line. pw.x generates N intermediate
+points of the line where N is the weight of the first point.
+            
+crystal_b :
+As tpiba_b, but k-points are in crystal coordinates.
+See Doc/brillouin_zones.pdf for usage of BZ labels.
+            
+tpiba_c :
+Used for band-structure contour plots.
+k-points are in units of  2 pi/a. nks must be 3.
+3 k-points k_0, k_1, and k_2 specify a rectangle
+in reciprocal space of vertices k_0, k_1, k_2,
+k_1 + k_2 - k_0: k_0 + \alpha (k_1-k_0)+
+\beta (k_2-k_0) with 0 <\alpha,\beta < 1.
+The code produces a uniform mesh n1 x n2
+k points in this rectangle. n1 and n2 are
+the weights of k_1 and k_2. The weight of k_0
+is not used.
+            
+crystal_c :
+As tpiba_c, but k-points are in crystal coordinates.
+
+If tpiba OR crystal OR tpiba_b OR crystal_b OR tpiba_c OR crystal_c:
+specify the number of k points, and add all the k points to the simulation with
+a vector (specifying their position) and their weight/value as following:
+-  qe.K_POINT cuds object:
+     .  value: 3
+     .  vector: [0. 0. 0.]
+     .  unit: tpiba
+-  qe.K_POINT cuds object:
+     .  value: 1
+     .  vector: [1. 0. 0.5]
+     .  unit: tpiba
+All k points in the simulation will be counted and added, so only ones you wish to be calculated.
+Make sure that all of them are in the same units.
+
+If automatic:
+include a vector6 QE.K_POINTS, where the first three elements are the grid and the second three are the offset.
+
+If gamma:
+do nothing. Quantum Espresso will simply evaluate at the gamma point.
+
+K_POINTS { tpiba | automatic | crystal | gamma | tpiba_b | crystal_b | tpiba_c | crystal_c }
+if (gamma)
+   nothing to read
+if (automatic)
+   nk1, nk2, nk3, k1, k2, k3
+if (not automatic)
+   nks
+   xk_x, xk_y, xk_z,  wk
+if (tpipa_b or crystal_b in a 'bands' calculation) see Doc/brillouin_zones.pdf
+
+---------------------------------------------------------------------------------------------------
+
+
+The following is only in case self.params["SYSTEM]["ibrav] == 0
+Otherwise, symmetries and space groups will be used (still to be implemented)
+
+bohr / angstrom: 
+lattice vectors in bohr-radii / angstrom.
+
+alat (default): 
+lattice vectors in units of the lattice parameter (either celldm(1) or A).
+
+How this looks in cuds:
+-  qe.CellParams cuds object:
+.  unit: alat
+.  tensor2: [[0.5 0.5 0.]
+             [0.5 0. 0.5]
+             [0. 0.5 0.5]]
+
+CELL_PARAMETERS { alat | bohr | angstrom }
+   v1(1) v1(2) v1(3) ... 1st lattice vector
+   v2(1) v2(2) v2(3) ... 2nd lattice vector
+   v3(1) v3(2) v3(3) ... 3rd lattice vector
+
+---------------------------------------------------------------------------------------------------
+
+It is unlikely that this feature will be implemented, as there is insufficient documentation 
+online to implement it in this wrapper.
+
+[ OCCUPATIONS
+   f_inp1(1)  f_inp1(2)  f_inp1(3) ... f_inp1(10)
+   f_inp1(11) f_inp1(12) ... f_inp1(nbnd)
+ [ f_inp2(1)  f_inp2(2)  f_inp2(3) ... f_inp2(10)
+   f_inp2(11) f_inp2(12) ... f_inp2(nbnd) ] ]
+
+---------------------------------------------------------------------------------------------------
+
+
+[ CONSTRAINTS
+   nconstr  { constr_tol }
+   constr_type(.)   constr(1,.)   constr(2,.) [ constr(3,.)   constr(4,.) ] { constr_target(.) } ]
+
+[ ATOMIC_FORCES
+   label_1 Fx(1) Fy(1) Fz(1)
+   .....
+   label_n Fx(n) Fy(n) Fz(n) ]
+
+- Cuds object:
+  type: qe.Simulation
+   |_Relationship qe.HAS_PART:
+     -  qe.Cell cuds object:
+     .  uuid: fc007ec3-654f-44aa-a278-eeda5cad9e3b
+     .   |_Relationship qe.HAS_PART:
+     .     -  qe.Atom cuds object:
+     .     .  uuid: 57400c26-8448-4a9b-8391-9811d1a05c33
+     .     .   |_Relationship qe.HAS_PART:
+     .     .     -  qe.Force cuds object:
+     .     .     .  uuid: 473e5eae-33b9-4cb2-8b27-0833bff419e8
+     .     .     .  unit: N
+     .     .     .  vector: [0. 0. 0.]
+     .     .     -  qe.Position cuds object:
+     .     .        uuid: 266a02ec-868c-49f3-818e-e6320d9cbd2b
+     .     .        unit: 
+     .     .        vector: [0. 0. 0.]
+     .     -  qe.CellParams cuds object:
+     .     .  uuid: d2cf4761-0e52-4a8d-a6d9-8e35d33c13c8
+     .     .   |_Relationship qe.HAS_PART:
+     .     .     -  qe.CellParameterX cuds object:
+     .     .     .  uuid: c95a7b10-5673-42b4-8f4a-20871fcad2ed
+     .     .     .  unit: 
+     .     .     .  vector: [0.5 0.5 0. ]
+     .     .     -  qe.CellParameterY cuds object:
+     .     .     .  uuid: fbb0a371-2d7a-4f16-9d45-8fb147d034c8
+     .     .     .  unit: 
+     .     .     .  vector: [0.5 0.  0.5]
+     .     .     -  qe.CellParameterZ cuds object:
+     .     .        uuid: d06f285b-cdf3-4554-bc54-e92d87401c3b
+     .     .        unit: 
+     .     .        vector: [0.  0.5 0.5]
+     .     -  qe.Celldm1 cuds object:
+     .     .  uuid: 1e629e5f-3890-4fb1-b40d-a7e4e0fad1b4
+     .     .  value: 5.4307
+     .     .  unit: au
+     .     -  qe.Volume cuds object:
+     .        uuid: f7914bce-83f9-4860-ab41-48550f7ecefe
+     .        value: 40.0412
+     .        unit: au^3
+     -  qe.Element cuds object named <Si>:
+     .  uuid: 684f15c4-11c2-4542-849b-7d316c83aaea
+     .   |_Relationship qe.HAS_PART:
+     .     -  qe.Atom cuds object:
+     .     .  uuid: 57400c26-8448-4a9b-8391-9811d1a05c33
+     .     .  (already printed)
+     .     -  qe.Mass cuds object:
+     .     .  uuid: f29d59be-807f-4133-a3e2-1b47d70d28f6
+     .     .  value: 28.085
+     .     .  unit: amu
+     .     -  qe.PSEUDOPOTENTIAL cuds object named <Si.pbe-n-kjpaw_psl.1.0.0.UPF>:
+     .        uuid: baa0d283-aceb-441c-816e-89caecd98255
+     -  qe.K_POINTS cuds object:
+     .  uuid: 2e1c4499-d946-4156-b122-16c01b6659d3
+     .  vector6: [7. 7. 7. 0. 0. 0.]
+     .  unit: 
+     -  qe.Outfile cuds object:
+     .  uuid: 2cc11d00-847d-4838-b8a7-2185552b28b4
+     .  path: si.pwscf.out
+     -  qe.Pressure cuds object:
+     .  uuid: 00bfd7bc-a681-4e40-8ef4-ac760c4ee7cc
+     .  value: 5723.64
+     .  unit: kbar
+     -  qe.QPoint cuds object:
+     .  uuid: 521d3ba5-96a9-4a8a-ac94-d441b0add44d
+     .  unit: 
+     .  vector: [0. 0. 0.]
+     .  calculate: True
+     .   |_Relationship qe.HAS_PART:
+     .     -  qe.Mode cuds object:
+     .     .  uuid: a67ab092-fe53-41b5-8816-e6d456ea3119
+     .     .  number: 3
+     .     -  qe.Mode cuds object:
+     .     .  uuid: 9636f990-57a8-4751-8180-3e55c6c5da8b
+     .     .  number: 2
+     .     -  qe.Mode cuds object:
+     .        uuid: 4e61de7e-ffcd-4b75-9710-2a7b4dbabc15
+     .        number: 1
+     -  qe.StressTensor cuds object:
+     .  uuid: 00b9713b-1edb-4752-8f21-12277f158cfb
+     .  tensor2: [[5723.64    0.      0.  ]
+ [   0.   5723.64    0.  ]
+ [   0.      0.   5723.64]]
+     .  unit: kbar
+     -  qe.TotalEnergy cuds object:
+        uuid: 31d213af-edb0-4eda-b181-31033794a543
+        value: -46.00727779
+        unit: Ry

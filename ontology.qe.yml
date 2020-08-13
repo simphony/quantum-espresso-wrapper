@@ -78,11 +78,7 @@ ontology:
         attributes:
             QE.name:
 
-    PSEUDOPOTENTIAL:
-        subclass_of:
-            - CUBA.Entity
-        attributes:
-            QE.name:
+
 
     ############################ Physical quantities
 
@@ -100,6 +96,13 @@ ontology:
         subclass_of:
             - CUBA.Entity
 
+    PhysicalQuantityVector6:
+        attributes:
+            QE.vector6:
+            QE.unit:
+        subclass_of:
+            - CUBA.Entity
+
     PhysicalQuantityTensor2:
         attributes:
             QE.tensor2:
@@ -112,6 +115,11 @@ ontology:
         subclass_of: 
             - QE.PhysicalQuantityVector
 
+    IfPos:
+        description: "Multiplier of a force in a particular direction. Each component can be 0 or 1, with 0 fixed and 1 variable"
+        subclass_of:
+            - QE.PhysicalQuantityVector
+
     Mass:
         description: "Mass of an entity"
         subclass_of:
@@ -119,17 +127,7 @@ ontology:
 
     CellParams:
         subclass_of:
-            - CUBA.Entity
-            - QE.HAS_PART:
-                range: QE.CellParameterX
-                cardinality: 1
-            - QE.HAS_PART:
-                range: QE.CellParameterY
-                cardinality: 1
-            - QE.HAS_PART:
-                range: QE.CellParameterZ
-                cardinality: 1
-            
+            - QE.PhysicalQuantityTensor2
 
     CellParameterX:
         subclass_of:
@@ -173,7 +171,16 @@ ontology:
     K_POINTS:
         description: Placeholder
         subclass_of:
-            - QE.PhysicalQuantityVector
+            - QE.PhysicalQuantityVector6
+
+    K_POINT:
+        description: Vector is the location in the Brillouin zone. Value is the weight of the K Point.
+        subclass_of:
+            - CUBA.Entity
+        attributes:
+            QE.vector:
+            QE.value:
+            QE.unit:
 
     Volume:
         subclass_of:
@@ -203,6 +210,17 @@ ontology:
         subclass_of:
             - QE.PhysicalQuantityTensor2
 
+    IfPos:
+        subclass_of:
+            - QE.PhysicalQuantityVector
+
+    # Constraint:
+    #     subclass_of:
+    #         - CUBA.Entity
+    #     attributes:
+    #         QE.name:
+    #         QE.vector4
+
     ############################ Attributes
 
     value:
@@ -219,6 +237,11 @@ ontology:
         subclass_of:
             - CUBA.attribute
         datatype: VECTOR:3
+
+    vector6:
+        subclass_of:
+            - CUBA.attribute
+        datatype: VECTOR:6
 
     tensor2:
         subclass_of:
@@ -240,8 +263,16 @@ ontology:
             - CUBA.attribute
         datatype: BOOL
 
-    ############################ Various extensions to be implemented
+    ############################ Files
 
+    PSEUDOPOTENTIAL:
+        subclass_of:
+            - CUBA.File
+
+    Outfile:
+        subclass_of:
+            - CUBA.File
+    
     BandsDat:
         subclass_of:
             - CUBA.File
@@ -263,6 +294,10 @@ ontology:
             - CUBA.File
     
     EvOut:
+        subclass_of:
+            - CUBA.File
+
+    A2fDat:
         subclass_of:
             - CUBA.File
 

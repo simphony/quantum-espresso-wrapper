@@ -16,7 +16,7 @@ class qeSession(SimWrapperSession):
     def __str__(self):
         return "Quantum Espresso Wrapper Session"
 
-    def _run(self, simulation, prefix, command_type = "pw.x", calculation_type = "scf", root = "", **kwargs):
+    def _run(self, simulation, prefix, command_type, calculation_type = "", root = "", **kwargs):
         self._qe_utils = getattr(osp.wrappers.quantumespresso.qe_utils, f"{command_type[:-2]}Utils")(self, root = root)
         
         self._prefix = prefix

@@ -52,7 +52,8 @@ class qeUtils():
             sim (QE.Simulation or list of QE.Simulations): the simulation for which cuds should be updated.
             For calculations that require multiple simulations and aggregate the data (such as ev.x), please provide a list of strings.
         """
-        pass
+        # Adds the output file that comes standard with most commands to the structure.
+        sim.add(QE.Outfile(path = self._file_path_root + self._session._output_file))
 
 class pwUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
@@ -75,7 +76,7 @@ class pwUtils(qeUtils):
             }
 
         # Information about the system to be simulated
-        self.sysinfo = {"ATOMIC_SPECIES":[[""]], "ATOMIC_POSITIONS":[["{crystal}"]],"K_POINTS":[["{automatic}"]], "CELL_PARAMETERS":[["{alat}"]]}
+        self.sysinfo = {"ATOMIC_SPECIES":[[""]], "ATOMIC_POSITIONS":[["{crystal}"]],"K_POINTS":[["{automatic}"]]}
 
         # Defining a couple useful functions
         def _get_count(oclass):
@@ -103,18 +104,26 @@ class pwUtils(qeUtils):
             self.atomlist.append(atom)
             self.sysinfo["ATOMIC_POSITIONS"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
 
-        for point in findo(QE.K_POINTS, 1):
-            self.sysinfo["K_POINTS"].append([int(i) for i in point.vector] + [0, 0, 0])
-
-        for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
-            self.sysinfo["CELL_PARAMETERS"].append([i for i in param.vector])
+        if findo(QE.K_POINTS, 1):
+            point = findo(QE.K_POINTS)[0]
+            self.sysinfo["K_POINTS"].append([int(i) for i in point.vector6])
         
+        elif findo(QE.K_POINT, 1):
+            count = 0
+            for point in findo(QE.K_POINT, 1):
+                count +=1
+                self.sysinfo["K_POINTS"].append([i for i in point.vector] + [point.value])
+            self.sysinfo["K_POINTS"].insert(1, count)
+
+        if self.params["SYSTEM"]["ibrav"] == 0:
+            self.sysinfo["CELL_PARAMETERS"]=[["{alat}"]]
+            for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
+                self.sysinfo["CELL_PARAMETERS"].append([i for i in param.vector])
+
         # Inherits method
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
-        # Adds the output file in case anyone wants to take a look at it
-        sim.add(QE.PwOut(path = self._file_path_root + self._session._output_file))
             
         # A variety of functions to update particular aspects of a cuds simulation
         def update_total_energy(line):
@@ -196,7 +205,6 @@ class pwUtils(qeUtils):
                     sim.get(oclass = QE.Cell)[0].add(QE.Volume(value = volume, unit = "au^3"))
 
         # How the cuds simulation should be updated depending on what calculation type
-        # Test
         if self._session._calculation_type == "scf":
             with open(self._file_path_root + self._session._output_file, "r+") as file:
                 lines = file.readlines()
@@ -217,7 +225,6 @@ class pwUtils(qeUtils):
                     update_stress_tensor(i, line)
                     update_atomic_positions(i, line)
                     update_volume(line)
-
         
         if self._session._calculation_type == "vc-relax":
             with open(self._file_path_root + self._session._output_file, "r+") as file:
@@ -230,6 +237,8 @@ class pwUtils(qeUtils):
                     update_atomic_positions(i, line)
                     update_celldm1(i, line)
                     update_volume(line)
+        
+        
         super()._update_cuds(sim)
 
 class bandsUtils(qeUtils):
@@ -277,13 +286,9 @@ class ppUtils(qeUtils):
                     "plot_num": self._session._calculation_type
                 },
                 "PLOT": {
-                    "nfile": 1,
                     "iflag": 3,
                     "output_format": 3,
                     "fileout": f"'{self._session._prefix}{self._session._calculation_type}.pp.xsf'",
-                    "nx": 101,
-                    "ny": 101,
-                    "nz": 101
                     # TODO: add support for manual vectors here
                     # TODO: add support for variable output formats
                 }
@@ -374,25 +379,52 @@ class phUtils(qeUtils):
 
         super()._update_cuds(sim)
 
-class alpha2fUtils(qeUtils):
+class cliUtils(qeUtils):
+    def _create_input(self, sim, **kwargs):
+        for key, value in kwargs.items():
+            self.params.update(value)
+    def _update_cuds(self, sim):
+        pass
+
+class plotbandUtils(cliUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
-            "INPUTPH": {
-                "outdir": "'.'",
-                "prefix": f"'{self._session._prefix}'",
-                "fildyn": f"'{self._session._prefix}.ph.dyn'"
-            },
-            "INPUTa2F": {
-                "nfreq": 500
-            }
+            "Input file": "1",
+            "Emin, Emax": "2",
+            "gnuplot": "3",
+            "ps": "4",
+            "Efermi": "5",
+            "deltaE": "6"
         }
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
+        pass
 
-        super()._update_cuds(sim)
-
-# class epaUtils(qeUtils):
+# class alpha2fUtils(qeUtils):
 #     def _create_input(self, sim, **kwargs):
-#         with open(self._file_path_root + self._session._input_file, "w+") as file:
+#         self.params = {
+#             "INPUTPH": {
+#                 "outdir": "'.'",
+#                 "prefix": f"'{self._session._prefix}'",
+#                 "fildyn": f"'{self._session._prefix}.ph.dyn'"
+#             },
+#             "INPUTa2F": {
+#                 "nfreq": 500
+#             }
+#         }
+#         super()._create_input(sim, **kwargs)
+
+#     def _update_cuds(self, sim):
+#         sim.add(QE.A2fDat)
+#         super()._update_cuds(sim)
+
+# # class epaUtils(qeUtils):
+# #     def _create_input(self, sim, **kwargs):
+# #         with open(self._file_path_root + self._session._input_file, "w+") as file:
+
+# class dynmatUtils(qeUtils):
+#     def _create_input(self, sim, **kwargs):
+
+#         super()._create_input(sim, **kwargs)
             

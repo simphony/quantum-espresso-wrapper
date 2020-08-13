@@ -5,7 +5,7 @@ from osp.wrappers.quantumespresso.qe_session import qeSession
 
 # Creates simulation
 sim = QE.Simulation()
-k = QE.K_POINTS(vector = (7, 7, 7), unit = "")
+k = QE.K_POINTS(vector6 = (7, 7, 7, 0, 0, 0), unit = "")
 
 # Creates a cell, the element Silicon, a pseudopotential, two atoms and cell parameters
 SiCell = QE.Cell()
@@ -62,7 +62,8 @@ with qeSession(root) as session:
     print("Running calculation...")
     # Runs the simulation
     # pretty_print(quantum_espresso_wrapper)
-    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", root = root)
+    pretty_print(quantum_espresso_wrapper)
+    # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", root = root)
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "bands")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "bands.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
@@ -71,8 +72,8 @@ with qeSession(root) as session:
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = "9")
     # quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "ph.x", calculation_type = "")
+    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "plotband.x", calculation_type = "", params = {'Input file': 'si.bands.dat', 'Emin, Emax': "-6 17", "gnuplot": "gnuplot", "ps": "si.bands.ps", "Efermi": "0", "deltaE": "5 0"})
     
-    pretty_print(sim)
     # pretty_print(sim2)
     # print("Results: ")
     # Pretty prints the simulation
