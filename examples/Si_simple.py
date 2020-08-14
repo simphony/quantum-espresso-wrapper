@@ -70,9 +70,9 @@ with qeSession(root) as session:
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "dos.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = "9")
-    # quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
+    quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "ph.x", calculation_type = "")
-    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "plotband.x", calculation_type = "", params = {'Input file': 'si.bands.dat', 'Emin, Emax': "-6 17", "gnuplot": "gnuplot", "ps": "si.bands.ps", "Efermi": "0", "deltaE": "5 0"})
+    # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "plotband.x", calculation_type = "", params = {'Input file': 'si.bands.dat', 'Emin, Emax': "-6 17", "gnuplot": "gnuplot", "ps": "si.bands.ps", "Efermi": "0", "deltaE": "5 0"})
     
     # pretty_print(sim2)
     # print("Results: ")

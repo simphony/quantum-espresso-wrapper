@@ -300,36 +300,6 @@ class ppUtils(qeUtils):
         sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
         super()._update_cuds(sim)
 
-class evUtils(qeUtils):
-    def _create_input(self, sims, **kwargs):
-        # This one's a bit more complicated. It's going through sims and writing the total energy and volume of each one.
-        with open(self._file_path_root + self._session._input_file, "w+") as f:
-            for s in sims:
-                total_energy = simple_search.find_cuds_objects_by_oclass(oclass = QE.TotalEnergy, root = s, rel = QE.HAS_PART)[0].value
-                volume = simple_search.find_cuds_objects_by_oclass(oclass = QE.Volume, root = s, rel = QE.HAS_PART)[0].value
-                f.write(f"{volume} {total_energy}\n")
-    
-    def _update_cuds(self, sim):
-        # Updates equilibrium volume and bulk modulus.
-        with open(self._file_path_root + self._session._output_file, 'r') as file:
-            lines = file.readlines()
-            v0 = lines[1].split()[3]
-            b0 = lines[1].split()[6][1:]
-            for s in sim:
-                volume_entity = s.get(oclass = QE.Cell)[0].get(oclass = QE.EquilibriumVolume)
-                modulus_entity = s.get(oclass = QE.BulkModulus)
-                if volume_entity:
-                    volume_entity[0].value = float(v0)
-                    volume_entity[0].unit = "au^3"
-                else:
-                    s.get(oclass = QE.Cell)[0].add(QE.EquilibriumVolume(value = v0, unit = "au^3"))
-                if modulus_entity:
-                    modulus_entity[0].value = float(b0)
-                    volume_entity[0].unit = "kbar"
-                else:
-                    s.add(QE.BulkModulus(value = b0, unit = "kbar"))
-        super()._update_cuds(sim)
-
 class phUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
@@ -400,6 +370,42 @@ class plotbandUtils(cliUtils):
 
     def _update_cuds(self, sim):
         pass
+
+class evUtils(cliUtils):
+    def _create_input(self, sims, **kwargs):
+        with open(self._file_path_root + self._session._input_file, "w+") as f:
+                for s in sims:
+                    total_energy = simple_search.find_cuds_objects_by_oclass(oclass = QE.TotalEnergy, root = s, rel = QE.HAS_PART)[0].value
+                    volume = simple_search.find_cuds_objects_by_oclass(oclass = QE.Volume, root = s, rel = QE.HAS_PART)[0].value
+                    f.write(f"{volume} {total_energy}\n")
+        self.params = {
+            "Lattice parameter": "au",
+            "type": "noncubic",
+            "equation of state": self._session._calculation_type,
+            "Input": self._file_path_root + self._session._input_file,
+            "Output": self._file_path_root + self._session._output_file,
+        }
+        super()._create_input(sims, **kwargs)
+
+    def _update_cuds(self, sims):
+        # Updates equilibrium volume and bulk modulus.
+        with open(self._file_path_root + self._session._output_file, 'r') as file:
+            lines = file.readlines()
+            v0 = lines[1].split()[3]
+            b0 = lines[1].split()[6][1:]
+            for s in sims:
+                volume_entity = s.get(oclass = QE.Cell)[0].get(oclass = QE.EquilibriumVolume)
+                modulus_entity = s.get(oclass = QE.BulkModulus)
+                if volume_entity:
+                    volume_entity[0].value = float(v0)
+                    volume_entity[0].unit = "au^3"
+                else:
+                    s.get(oclass = QE.Cell)[0].add(QE.EquilibriumVolume(value = v0, unit = "au^3"))
+                if modulus_entity:
+                    modulus_entity[0].value = float(b0)
+                    volume_entity[0].unit = "kbar"
+                else:
+                    s.add(QE.BulkModulus(value = b0, unit = "kbar"))
 
 # class alpha2fUtils(qeUtils):
 #     def _create_input(self, sim, **kwargs):
