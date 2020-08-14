@@ -11,8 +11,8 @@ class SimulationEngine:
         input_file = self._session._qe_utils._file_path_root + self._session._input_file
         output_file = self._session._qe_utils._file_path_root + self._session._output_file
 
-        # Using pexpect, interacts with the ev.x command using certain variables
-        # Couldn't find any other way to do this, if someone can do it better, please let me know
+        # Using pexpect, checks type of parent class. If it's cliUtils, then use params keys as expect
+        # and send params values. Do not remove wait, otherwise command will not run.
         if self._session._qe_utils.__class__.__base__ == osp.wrappers.quantumespresso.qe_utils.cliUtils:
             child = pexpect.spawn(self._session._command_type)
             for i, j in self._session._qe_utils.params.items():

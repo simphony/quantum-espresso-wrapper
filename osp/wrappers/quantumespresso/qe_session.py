@@ -32,6 +32,8 @@ class qeSession(SimWrapperSession):
         self._engine.run()
         self._qe_utils._update_cuds(simulation)
 
+    
+    # Only here for compatibility reasons
     def _load_from_backend(self, uids, expired=None):
         for uid in uids:
             try:

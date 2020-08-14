@@ -23,7 +23,7 @@ class qeUtils():
         Args:
             sim (QE.Simulation or list of QE.Simulations): the simulation on which to perform the calculation.
             For calculations that require multiple simulations and aggregate the data (such as ev.x), please provide a list of strings.
-
+            **kwargs (dict): used to update the params
         """
         # Update params based on kwargs
         for key1, value1 in self.params.items():
@@ -32,7 +32,6 @@ class qeUtils():
                     value1.update(value2)
 
         # Writes to file based on params and sys
-        print(self._file_path_root + self._session._input_file)
         with open(self._file_path_root + self._session._input_file, "w+") as f:
             for key1, value1 in self.params.items():
                 f.write(f"&{key1} \n")
@@ -294,7 +293,37 @@ class ppUtils(qeUtils):
                 }
 
             }
+
+        # Default plot settings
+        if self.params["PLOT"]["iflag"] != 4:
+            self.params["PLOT"][f"e1 ({1})"] = 1
+            self.params["PLOT"][f"e1 ({2})"] = 0
+            self.params["PLOT"][f"e1 ({3})"] = 0
+            for i in range(1, 4):
+                self.params["PLOT"][f"x0 ({i})"] = 0
+            self.params["PLOT"]["nx"] = 101
+        
+        if self.params["PLOT"]["iflag"] == (2 or 3):
+            self.params["PLOT"][f"e2 ({1})"] = 0
+            self.params["PLOT"][f"e2 ({2})"] = 1
+            self.params["PLOT"][f"e2 ({3})"] = 0
+            self.params["PLOT"]["ny"] = 101
+                    
+        if self.params["PLOT"]["iflag"] == 3:
+            self.params["PLOT"][f"e3 ({1})"] = 0
+            self.params["PLOT"][f"e3 ({2})"] = 0
+            self.params["PLOT"][f"e3 ({3})"] = 1
+            self.params["PLOT"]["nz"] = 101
+
+        if self.params["PLOT"]["iflag"] == 4:
+            self.params["PLOT"]["radius"] == 1
+            self.params["PLOT"]["nx"] = 101
+            self.params["PLOT"]["ny"] = 101
+
+            
         super()._create_input(sim, **kwargs)
+
+
 
     def _update_cuds(self, sim):
         sim.add(QE.XSF(path = self._file_path_root + self._session._prefix + ".pp.xsf"))
