@@ -20,20 +20,6 @@ class SimulationEngine:
                 child.sendline(j)
             child.wait()
 
-        # if self._session._command_type == "ev.x":
-        #     child = pexpect.spawn('ev.x')
-        #     child.expect('au')
-        #     child.sendline('au')
-        #     child.expect('fcc')
-        #     child.sendline('noncubic')
-        #     child.expect('1')
-        #     child.sendline(self._session._calculation_type)
-        #     child.expect('Input')
-        #     child.sendline(input_file)
-        #     child.expect('Output')
-        #     child.sendline(output_file)
-        #     child.wait()
-
         # Runs the command in the usual way
         else:
             command = [self._session._command_type, "-i", input_file, ">", output_file]

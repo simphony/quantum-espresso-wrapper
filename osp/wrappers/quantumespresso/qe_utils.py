@@ -105,7 +105,7 @@ class pwUtils(qeUtils):
             self.sysinfo["ATOMIC_POSITIONS"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
 
         if findo(QE.K_POINTS, 1):
-            point = findo(QE.K_POINTS)[0]
+            point = findo(QE.K_POINTS, 1)[0]
             self.sysinfo["K_POINTS"].append([int(i) for i in point.vector6])
         
         elif findo(QE.K_POINT, 1):
