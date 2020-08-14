@@ -2,8 +2,8 @@
 
 ## Requirements
 
-* osp-core >= 3.4.0
-* Quantum ESPRESSO >= 6.5
+* [osp-core](https://github.com/simphony/osp-core/releases) >= 3.4.0
+* [Quantum ESPRESSO](https://github.com/QEF/q-e/releases) >= 6.5
 
 ## Installation
 Installation is based on setuptools:
