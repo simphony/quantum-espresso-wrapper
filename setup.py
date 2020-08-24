@@ -17,5 +17,6 @@ setup(
         'wrappers':
             'quantumespresso = osp.wrappers.quantumespresso:QESession'
     },
+    install_requires = ['osp-core>=3.4.0']
     
 )
