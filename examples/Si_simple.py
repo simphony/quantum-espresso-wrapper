@@ -10,9 +10,8 @@ k = QE.K_POINTS(vector6 = (7, 7, 7, 0, 0, 0), unit = "")
 # Creates a cell, the element Silicon, a pseudopotential, two atoms and cell parameters
 SiCell = QE.Cell()
 Si = QE.Element(name = "Si")
-SiPseudo = QE.PSEUDOPOTENTIAL(name = "Si.pbe-n-kjpaw_psl.1.0.0.UPF")
+SiPseudo = QE.PSEUDOPOTENTIAL(path = "Si.pbe-n-kjpaw_psl.1.0.0.UPF")
 Si1 = QE.Atom()
-SiParams = QE.CellParams()
 celldm1 = QE.Celldm1(value = 5.43070, unit = "au")
 
 # Adds pseudopotential and atoms to the element
@@ -21,14 +20,15 @@ celldm1 = QE.Celldm1(value = 5.43070, unit = "au")
 # Positions the atoms
 Si.add(SiPseudo, Si1)
 Si.add(QE.Mass(value = 28.085, unit = "amu"))
+SiParams = QE.CellParams(tensor2 = [[0.5, 0.5, 0.],
+                                      [0.5, 0., 0.5],
+                                      [0., 0.5, 0.5]], unit = "")
 SiCell.add(Si1, SiParams)
 Si1.add(QE.Position(vector = (0, 0, 0), unit = ""))
 SiCell.add(celldm1)
 
 # Specifies the values of the cell parameters
-SiParams.add(QE.CellParameterX(vector = (0.5, 0.5, 0), unit = ""),
-             QE.CellParameterY(vector = (0.5, 0, 0.5), unit = ""),
-             QE.CellParameterZ(vector = (0, 0.5, 0.5), unit = ""))
+
 
 # Adds cell and element to simulation
 sim.add(SiCell)
@@ -60,7 +60,7 @@ with qeSession(root) as session:
     # pretty_print(sim)
     # Creates a qeUtil object and creates an input file based off of the simulation
     print("Running calculation...")
-    # Runs the simulation
+    # Runs the simulation 
     # pretty_print(quantum_espresso_wrapper)
     # pretty_print(quantum_espresso_wrapper)
     quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", root = root)
@@ -69,11 +69,11 @@ with qeSession(root) as session:
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "relax", IONS = {'ion_dynamics': "'bfgs'"})
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pw.x", calculation_type = "scf", SYSTEM = {'occupations': "'tetrahedra'"})
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "dos.x", calculation_type = "")
-    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = "9")
+    quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "pp.x", calculation_type = 9, PLOT = {"output_format": 6})
     # quantum_espresso_wrapper.session._run(simulation = [sim, sim2], prefix = 'si', command_type = "ev.x", calculation_type = '1')
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "ph.x", calculation_type = "")
     # quantum_espresso_wrapper.session._run(simulation = sim, prefix = "si", command_type = "plotband.x", calculation_type = "", params = {'Input file': 'si.bands.dat', 'Emin, Emax': "-6 17", "gnuplot": "gnuplot", "ps": "si.bands.ps", "Efermi": "0", "deltaE": "5 0"})
-    
+    pretty_print(sim)
     # pretty_print(sim2)
     # print("Results: ")
     # Pretty prints the simulation

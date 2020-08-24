@@ -129,18 +129,6 @@ ontology:
         subclass_of:
             - QE.PhysicalQuantityTensor2
 
-    CellParameterX:
-        subclass_of:
-            - QE.PhysicalQuantityVector
-    
-    CellParameterY:
-        subclass_of:
-            - QE.PhysicalQuantityVector
-
-    CellParameterZ:
-        subclass_of:
-            - QE.PhysicalQuantityVector
-
     TotalEnergy:
         subclass_of:
             - QE.PhysicalQuantity

@@ -17,6 +17,13 @@ class qeUtils():
         self._file_path_root = root
         self.params = {}
 
+    def _modify_input(self, sim, **kwargs):
+        # Update params based on kwargs
+        for key1, value1 in self.params.items():
+            for key2, value2 in kwargs.items():
+                if key1 == key2:
+                    value1.update(value2)
+
     def _create_input(self, sim, **kwargs):
         """Creates input file(s) necessary to perform the calculations
 
@@ -25,22 +32,20 @@ class qeUtils():
             For calculations that require multiple simulations and aggregate the data (such as ev.x), please provide a list of strings.
             **kwargs (dict): used to update the params
         """
-        # Update params based on kwargs
-        for key1, value1 in self.params.items():
-            for key2, value2 in kwargs.items():
-                if key1 == key2:
-                    value1.update(value2)
 
         # Writes to file based on params and sys
         with open(self._file_path_root + self._session._input_file, "w+") as f:
             for key1, value1 in self.params.items():
                 f.write(f"&{key1} \n")
                 for key2, value2 in value1.items():
-                    f.write(f"  {key2} = {value2} \n")
+                    if type(value2) == int or type(value2) == float or value2 == ".true." or value2 == ".false.":
+                        f.write(f"  {key2} = {value2} \n")
+                    else:
+                        f.write(f"  {key2} = '{value2}' \n")
                 f.write("/\n")
             if self._session._command_type == "pw.x" or self._session._command_type == "ph.x": # TODO: find a way to put this in the pwUtils class
                 for key1, value1 in self.sysinfo.items():
-                    f.write(f" {key1} ")
+                    f.write(f"{key1} ")
                     for i in value1:
                         f.write(" ".join(str(v) for v in i) + "\n")
 
@@ -59,11 +64,11 @@ class pwUtils(qeUtils):
         # Simulation parameters
         self.params = {
                 "CONTROL": {
-                    "calculation": f"'{self._session._calculation_type}'",
-                    "pseudo_dir": "'.'",
+                    "calculation": f"{self._session._calculation_type}",
+                    "pseudo_dir": ".",
                     "tprnfor": ".true.",
                     "tstress": ".true.",
-                    "prefix": f"'{self._session._prefix}'",
+                    "prefix": f"{self._session._prefix}",
                 },
                 "SYSTEM": {
                     "ibrav": 0,
@@ -90,24 +95,25 @@ class pwUtils(qeUtils):
         # Add some sysinfo based on cuds
         self.params["SYSTEM"]["nat"] = _get_count(oclass = QE.Atom)
         self.params["SYSTEM"]["ntyp"] = _get_count(QE.Element)
-        self.params["SYSTEM"]["celldm(1)"] = findo(QE.Celldm1, 2)[0].value
+        self.params["SYSTEM"]["celldm(1)"] = float(findo(QE.Celldm1, 2)[0].value)
+        print(type(self.params["SYSTEM"]["celldm(1)"]))
 
         # Storing atoms so that the same order can be used to update cuds later on
         self.atomlist = []
 
         # Adds a bunch of stuff to sysinfo
         for element in findo(QE.Element, 1):
-            self.sysinfo["ATOMIC_SPECIES"].append([element.name, element.get(oclass = QE.Mass)[0].value, element.get(oclass = QE.PSEUDOPOTENTIAL)[0].name])
+            self.sysinfo["ATOMIC_SPECIES"].append([element.name, element.get(oclass = QE.Mass)[0].value, element.get(oclass = QE.PSEUDOPOTENTIAL)[0].path])
         
-        for atom in findo(QE.Atom, 2):
+        for atom in findo(QE.Atom, 3):
             self.atomlist.append(atom)
             self.sysinfo["ATOMIC_POSITIONS"].append([atom.get(oclass = QE.Element, rel = QE.IS_PART_OF)[0].name] + [i for i in atom.get(oclass = QE.Position)[0].vector])
 
-        if findo(QE.K_POINTS, 1):
+        if findo(QE.K_POINTS, 2):
             point = findo(QE.K_POINTS, 1)[0]
             self.sysinfo["K_POINTS"].append([int(i) for i in point.vector6])
         
-        elif findo(QE.K_POINT, 1):
+        elif findo(QE.K_POINT, 2):
             count = 0
             for point in findo(QE.K_POINT, 1):
                 count +=1
@@ -116,10 +122,13 @@ class pwUtils(qeUtils):
 
         if self.params["SYSTEM"]["ibrav"] == 0:
             self.sysinfo["CELL_PARAMETERS"]=[["{alat}"]]
-            for param in findo(QE.CellParams, 2)[0].get(rel = QE.HAS_PART):
-                self.sysinfo["CELL_PARAMETERS"].append([i for i in param.vector])
+            cellparams = findo(QE.CellParams, 2)[0]
+            for i in cellparams.tensor2:
+                self.sysinfo["CELL_PARAMETERS"].append([float(j) for j in i])
+
 
         # Inherits method
+        super()._modify_input(sim, **kwargs)
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
@@ -137,13 +146,16 @@ class pwUtils(qeUtils):
 
         def update_pressure(line):
             if line.startswith("     Computing"):
-                pressure = float(lines[i+2].split()[5])
+                try:
+                    pressure = float(lines[i+2].split()[5])
+                except:
+                    pressure = float(lines[i+4].split()[5])
                 cuds_entity = sim.get(oclass = QE.Pressure)
                 if cuds_entity:
                     cuds_entity[0].value = pressure
                     cuds_entity[0].unit = "kbar"
                 else:
-                    sim.add(QE.Force(value = pressure, unit = "kbar"))
+                    sim.add(QE.Pressure(value = pressure, unit = "kbar"))
 
         def update_force(line):
             if line.startswith("     atom "):
@@ -158,8 +170,12 @@ class pwUtils(qeUtils):
 
         def update_stress_tensor(i, line):
             if line.startswith("     Computing"):
-                stresslines = [lines[i+j] for j in range(3, 6)]
-                raw_stress_tensor = [float(j) for j in "".join(stresslines).split()]
+                try:
+                    stresslines = [lines[i+j] for j in range(3, 6)]
+                    raw_stress_tensor = [float(j) for j in "".join(stresslines).split()]
+                except:
+                    stresslines = [lines[i+j] for j in range(5, 8)]
+                    raw_stress_tensor = [float(j) for j in "".join(stresslines).split()]
                 stress_tensor_kbar = np.array(raw_stress_tensor).reshape((3, 6))[:,3:6]
                 cuds_entity = sim.get(oclass = QE.StressTensor)
                 if cuds_entity:
@@ -244,13 +260,14 @@ class bandsUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
                 "BANDS": {
-                    "prefix": f"'{self._session._prefix}'",
-                    "outdir": "'.'",
-                    "filband": f"'{self._session._prefix}" + ".bands.dat'"
+                    "prefix": f"{self._session._prefix}",
+                    "outdir": ".",
+                    "filband": f"{self._session._prefix}" + ".bands.dat"
                 }
             }
         self._session._calculation_type = ""
         self.sysinfo = []
+        super()._modify_input(sim, **kwargs)
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
@@ -261,12 +278,13 @@ class dosUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
                 "DOS": {
-                    "outdir": "'.'",
-                    "prefix": f"'{self._session._prefix}'",
+                    "outdir": ".",
+                    "prefix": f"{self._session._prefix}",
                     "DeltaE": 0.05,
-                    "fildos": f"'{self._session._prefix}" + ".dos.dat'"
+                    "fildos": f"{self._session._prefix}" + ".dos.dat"
                 }
             }
+        super()._modify_input(sim, **kwargs)
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
@@ -277,9 +295,9 @@ class ppUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
                 "INPUTPP": {
-                    "prefix": f"'{self._session._prefix}'",
-                    "outdir":  "'.'",
-                    "filplot": f"'{self._session._prefix}.pp{self._session._calculation_type}.txt'",
+                    "prefix": f"{self._session._prefix}",
+                    "outdir":  ".",
+                    "filplot": f"{self._session._prefix}.pp{self._session._calculation_type}.txt",
                     # Note that plot_num is strictly int, reference to the significance of each values can be found here: https://www.quantum-espresso.org/Doc/INPUT_PP.html
                     # We use calculation type because it is already in use
                     "plot_num": self._session._calculation_type
@@ -287,12 +305,14 @@ class ppUtils(qeUtils):
                 "PLOT": {
                     "iflag": 3,
                     "output_format": 3,
-                    "fileout": f"'{self._session._prefix}{self._session._calculation_type}.pp.xsf'",
+                    "fileout": f"{self._session._prefix}{self._session._calculation_type}.pp.xsf",
                     # TODO: add support for manual vectors here
                     # TODO: add support for variable output formats
                 }
 
             }
+
+        super()._modify_input(sim, **kwargs)
 
         # Default plot settings
         if self.params["PLOT"]["iflag"] != 4:
@@ -320,8 +340,17 @@ class ppUtils(qeUtils):
             self.params["PLOT"]["nx"] = 101
             self.params["PLOT"]["ny"] = 101
 
-            
+        if self.params["PLOT"]["output_format"] == (0 or 7):
+            self.params["PLOT"]["fileout"] = self.params["PLOT"]["fileout"][:-4] + "plt"
+
+        elif self.params["PLOT"]["output_format"] == 6:
+            self.params["PLOT"]["fileout"] = self.params["PLOT"]["fileout"][:-4] + "pltrho"
+        
+        elif self.params["PLOT"]["output_format"] == 6:
+            self.params["PLOT"]["fileout"] = self.params["PLOT"]["fileout"][:-4] + "cub"
+        
         super()._create_input(sim, **kwargs)
+
 
 
 
@@ -333,9 +362,9 @@ class phUtils(qeUtils):
     def _create_input(self, sim, **kwargs):
         self.params = {
             "INPUTPH": {
-                "outdir": "'.'",
-                "prefix": f"'{self._session._prefix}'",
-                "fildyn": f"'{self._session._prefix}.ph.dyn'"
+                "outdir": ".",
+                "prefix": f"{self._session._prefix}",
+                "fildyn": f"{self._session._prefix}.ph.dyn"
             }
         }
         self.qpoints = []
@@ -353,6 +382,7 @@ class phUtils(qeUtils):
                 self.sysinfo = {}
         except:
             self.sysinfo = {}
+        super()._modify_input(sim, **kwargs)
         super()._create_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
@@ -379,7 +409,7 @@ class phUtils(qeUtils):
         super()._update_cuds(sim)
 
 class cliUtils(qeUtils):
-    def _create_input(self, sim, **kwargs):
+    def _modify_input(self, sim, **kwargs):
         for key, value in kwargs.items():
             self.params.update(value)
     def _update_cuds(self, sim):
@@ -395,7 +425,7 @@ class plotbandUtils(cliUtils):
             "Efermi": "5",
             "deltaE": "6"
         }
-        super()._create_input(sim, **kwargs)
+        super()._modify_input(sim, **kwargs)
 
     def _update_cuds(self, sim):
         pass
@@ -414,7 +444,8 @@ class evUtils(cliUtils):
             "Input": self._file_path_root + self._session._input_file,
             "Output": self._file_path_root + self._session._output_file,
         }
-        super()._create_input(sims, **kwargs)
+
+        super()._modify_input(sim, **kwargs)
 
     def _update_cuds(self, sims):
         # Updates equilibrium volume and bulk modulus.
@@ -448,7 +479,8 @@ class evUtils(cliUtils):
 #                 "nfreq": 500
 #             }
 #         }
-#         super()._create_input(sim, **kwargs)
+#         super()._modify_input(sim, **kwargs)
+        # super()._create_input(sim, **kwargs)
 
 #     def _update_cuds(self, sim):
 #         sim.add(QE.A2fDat)
@@ -461,5 +493,6 @@ class evUtils(cliUtils):
 # class dynmatUtils(qeUtils):
 #     def _create_input(self, sim, **kwargs):
 
-#         super()._create_input(sim, **kwargs)
+#         super()._modify_input(sim, **kwargs)
+        # super()._create_input(sim, **kwargs)
             
